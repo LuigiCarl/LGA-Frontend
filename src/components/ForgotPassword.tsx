@@ -158,7 +158,7 @@ export function ForgotPassword() {
         </div>
         <div className="text-center">
           <h1 className="text-[30px] leading-9 text-[#0A0A0A] dark:text-white mb-2">
-            Budget Tracker
+            FinanEase
           </h1>
           <p className="text-base leading-6 text-[#717182] dark:text-[#A1A1AA]">
             Manage your finances with ease

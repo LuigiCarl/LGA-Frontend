@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Wallet, Plus, Pencil, Trash2, X } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { HeaderActions } from "./HeaderActions";
+import { CategoriesSkeleton } from "./ui/ContentLoader";
 import { Category } from "../lib/api";
 import { 
   useCategories, 
@@ -127,13 +128,28 @@ export function Categories() {
   if (categoriesLoading && !categoriesData) {
     return (
       <div className="flex flex-col h-full">
+        {/* Header - Always visible */}
         <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
+          <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <HeaderActions />
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Categories</h2>
+            <div className="hidden lg:flex items-center gap-2">
+              <HeaderActions />
+            </div>
           </div>
         </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-gray-400">Loading categories...</div>
+        <div className="flex-1 overflow-y-auto">
+          <CategoriesSkeleton />
         </div>
       </div>
     );
@@ -149,7 +165,7 @@ export function Categories() {
               <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
                 <Wallet className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
+              <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
             </div>
             <div className="flex items-center gap-2">
               <HeaderActions />

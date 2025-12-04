@@ -1,7 +1,7 @@
-import { Wallet, Users, MessageSquare, Search, Filter, Plus, Pencil, Trash2, X, Send, Info, AlertCircle, Check, Bell, Ban, CheckCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Wallet, Users, MessageSquare, Search, Filter, Plus, Pencil, Trash2, X, Send, Info, AlertCircle, Check, Bell, Ban, CheckCircle, GripVertical, LayoutGrid } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatCurrency } from "../utils/currency";
+import { useCurrency } from "../context/CurrencyContext";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { HeaderActions } from "./HeaderActions";
 import { adminAPI } from "../lib/api";
@@ -47,6 +47,13 @@ export function Admin() {
   const queryClientHook = useQueryClient();
   const { removeNotificationById, refreshNotifications } = useNotifications();
   const toast = useToast();
+  const { formatCurrency } = useCurrency();
+  
+  // Drag and drop states for user management
+  const [draggedUserId, setDraggedUserId] = useState<number | null>(null);
+  const [userOrder, setUserOrder] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const dragOverItemRef = useRef<number | null>(null);
   
   // User CRUD states
   const [showUserModal, setShowUserModal] = useState(false);
@@ -470,7 +477,7 @@ export function Admin() {
             <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
               <Wallet className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
+            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
           </div>
           <div className="flex items-center gap-2">
             <HeaderActions />
@@ -590,13 +597,54 @@ export function Admin() {
               </select>
             </div>
             {activeTab === "users" && (
-              <button
-                onClick={handleAddUser}
-                className="h-11 px-4 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[12px] text-white flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#6366F1]/30 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Add User
-              </button>
+              <>
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1 bg-[#F3F3F5] dark:bg-[#18181B] rounded-[12px] p-1">
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`h-9 px-3 rounded-[10px] flex items-center justify-center transition-all ${
+                      viewMode === "list" 
+                        ? "bg-white dark:bg-[#27272A] text-[#0A0A0A] dark:text-white shadow-sm" 
+                        : "text-[#717182] dark:text-[#A1A1AA]"
+                    }`}
+                    title="List view"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`h-9 px-3 rounded-[10px] flex items-center justify-center transition-all ${
+                      viewMode === "grid" 
+                        ? "bg-white dark:bg-[#27272A] text-[#0A0A0A] dark:text-white shadow-sm" 
+                        : "text-[#717182] dark:text-[#A1A1AA]"
+                    }`}
+                    title="Grid view"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                </div>
+                {/* Auto Arrange Button */}
+                <button
+                  onClick={() => {
+                    // Sort users by total spent (highest first)
+                    const sorted = [...filteredUsers].sort((a, b) => b.totalSpent - a.totalSpent);
+                    setUserOrder(sorted.map(u => u.id));
+                    toast.success("Users arranged by spending");
+                  }}
+                  className="h-11 px-4 bg-[#F3F3F5] dark:bg-[#18181B] border border-transparent dark:border-white/10 rounded-[12px] text-[#0A0A0A] dark:text-white flex items-center justify-center gap-2 hover:bg-[#ECECF0] dark:hover:bg-[#27272A] transition-all"
+                  title="Auto arrange by spending"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  <span className="hidden sm:inline">Arrange</span>
+                </button>
+                <button
+                  onClick={handleAddUser}
+                  className="h-11 px-4 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[12px] text-white flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#6366F1]/30 transition-all"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="hidden sm:inline">Add User</span>
+                </button>
+              </>
             )}
             {activeTab === "notifications" && (
               <button
@@ -611,7 +659,7 @@ export function Admin() {
 
           {/* Content */}
           {activeTab === "users" ? (
-            <div className="space-y-3">
+            <div>
               {isLoadingUsers ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6366F1] mx-auto mb-3"></div>
@@ -622,78 +670,198 @@ export function Admin() {
                   <Users className="w-12 h-12 text-[#717182] dark:text-[#A1A1AA] mx-auto mb-3" />
                   <p className="text-base text-[#717182] dark:text-[#A1A1AA]">No users found</p>
                 </div>
-              ) : (
-              <>
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 hover:shadow-lg dark:hover:shadow-[#6366F1]/10 transition-shadow"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-lg text-white">
-                          {user.name.split(" ").map(n => n[0]).join("")}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-base text-[#0A0A0A] dark:text-white truncate">{user.name}</p>
-                        <p className="text-sm text-[#717182] dark:text-[#A1A1AA] truncate">{user.email}</p>
-                        <p className="text-xs text-[#717182] dark:text-[#71717A]">Joined: {user.joinDate}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-                      <div className="flex gap-6">
-                        <div>
-                          <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Transactions</p>
-                          <p className="text-base text-[#0A0A0A] dark:text-white">{user.totalTransactions}</p>
+              ) : viewMode === "grid" ? (
+                /* Grid View */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {(userOrder.length > 0 
+                    ? userOrder.map(id => filteredUsers.find(u => u.id === id)).filter(Boolean) as User[]
+                    : filteredUsers
+                  ).map((user) => (
+                    <div
+                      key={user.id}
+                      draggable
+                      onDragStart={() => setDraggedUserId(user.id)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        dragOverItemRef.current = user.id;
+                      }}
+                      onDragEnd={() => {
+                        if (draggedUserId !== null && dragOverItemRef.current !== null && draggedUserId !== dragOverItemRef.current) {
+                          const currentOrder = userOrder.length > 0 ? userOrder : filteredUsers.map(u => u.id);
+                          const draggedIndex = currentOrder.indexOf(draggedUserId);
+                          const targetIndex = currentOrder.indexOf(dragOverItemRef.current);
+                          const newOrder = [...currentOrder];
+                          newOrder.splice(draggedIndex, 1);
+                          newOrder.splice(targetIndex, 0, draggedUserId);
+                          setUserOrder(newOrder);
+                          toast.info("User position updated");
+                        }
+                        setDraggedUserId(null);
+                        dragOverItemRef.current = null;
+                      }}
+                      className={`bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 cursor-move hover:shadow-lg dark:hover:shadow-[#6366F1]/10 transition-all ${
+                        draggedUserId === user.id ? "opacity-50 scale-95" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center mb-3">
+                          <span className="text-xl text-white">
+                            {user.name.split(" ").map(n => n[0]).join("")}
+                          </span>
                         </div>
-                        <div>
-                          <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Total Spent</p>
-                          <p className="text-base text-[#0A0A0A] dark:text-white">{formatCurrency(user.totalSpent)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs capitalize ${getStatusColor(user.status)}`}>
+                        <p className="text-base text-[#0A0A0A] dark:text-white truncate w-full">{user.name}</p>
+                        <p className="text-xs text-[#717182] dark:text-[#A1A1AA] truncate w-full mb-2">{user.email}</p>
+                        <span className={`px-3 py-1 rounded-full text-xs capitalize mb-3 ${getStatusColor(user.status)}`}>
                           {user.status}
                         </span>
-                        {user.status === "blocked" ? (
+                        <div className="flex gap-4 text-center mb-3">
+                          <div>
+                            <p className="text-lg text-[#0A0A0A] dark:text-white">{user.totalTransactions}</p>
+                            <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Txns</p>
+                          </div>
+                          <div>
+                            <p className="text-lg text-[#0A0A0A] dark:text-white">{formatCurrency(user.totalSpent)}</p>
+                            <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Spent</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {user.status === "blocked" ? (
+                            <button
+                              onClick={() => unblockUserMutation.mutate(user.id)}
+                              disabled={unblockUserMutation.isPending}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#E5F9E5] dark:hover:bg-[#1F3F1F] transition-colors disabled:opacity-50"
+                              title="Unblock user"
+                            >
+                              <CheckCircle className="w-4 h-4 text-[#00A63E] dark:text-[#4ADE80]" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => blockUserMutation.mutate(user.id)}
+                              disabled={blockUserMutation.isPending}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#FFE5E5] dark:hover:bg-[#3F1F1F] transition-colors disabled:opacity-50"
+                              title="Block user"
+                            >
+                              <Ban className="w-4 h-4 text-[#F59E0B] dark:text-[#FCD34D]" />
+                            </button>
+                          )}
                           <button
-                            onClick={() => unblockUserMutation.mutate(user.id)}
-                            disabled={unblockUserMutation.isPending}
-                            className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#E5F9E5] dark:hover:bg-[#1F3F1F] transition-colors disabled:opacity-50"
-                            title="Unblock user"
+                            onClick={() => handleEditUser(user)}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
                           >
-                            <CheckCircle className="w-4 h-4 text-[#00A63E] dark:text-[#4ADE80]" />
+                            <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
                           </button>
-                        ) : (
                           <button
-                            onClick={() => blockUserMutation.mutate(user.id)}
-                            disabled={blockUserMutation.isPending}
-                            className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#FFE5E5] dark:hover:bg-[#3F1F1F] transition-colors disabled:opacity-50"
-                            title="Block user"
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
                           >
-                            <Ban className="w-4 h-4 text-[#F59E0B] dark:text-[#FCD34D]" />
+                            <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
-                        >
-                          <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
-                        </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-              </>
+              ) : (
+                /* List View */
+                <div className="space-y-3">
+                  {(userOrder.length > 0 
+                    ? userOrder.map(id => filteredUsers.find(u => u.id === id)).filter(Boolean) as User[]
+                    : filteredUsers
+                  ).map((user) => (
+                    <div
+                      key={user.id}
+                      draggable
+                      onDragStart={() => setDraggedUserId(user.id)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        dragOverItemRef.current = user.id;
+                      }}
+                      onDragEnd={() => {
+                        if (draggedUserId !== null && dragOverItemRef.current !== null && draggedUserId !== dragOverItemRef.current) {
+                          const currentOrder = userOrder.length > 0 ? userOrder : filteredUsers.map(u => u.id);
+                          const draggedIndex = currentOrder.indexOf(draggedUserId);
+                          const targetIndex = currentOrder.indexOf(dragOverItemRef.current);
+                          const newOrder = [...currentOrder];
+                          newOrder.splice(draggedIndex, 1);
+                          newOrder.splice(targetIndex, 0, draggedUserId);
+                          setUserOrder(newOrder);
+                          toast.info("User position updated");
+                        }
+                        setDraggedUserId(null);
+                        dragOverItemRef.current = null;
+                      }}
+                      className={`bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 cursor-move hover:shadow-lg dark:hover:shadow-[#6366F1]/10 transition-all ${
+                        draggedUserId === user.id ? "opacity-50 scale-95" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <GripVertical className="w-4 h-4 text-[#A1A1AA] dark:text-[#52525B] flex-shrink-0" />
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-lg text-white">
+                                {user.name.split(" ").map(n => n[0]).join("")}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-base text-[#0A0A0A] dark:text-white truncate">{user.name}</p>
+                            <p className="text-sm text-[#717182] dark:text-[#A1A1AA] truncate">{user.email}</p>
+                            <p className="text-xs text-[#717182] dark:text-[#71717A]">Joined: {user.joinDate}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                          <div className="flex gap-6">
+                            <div>
+                              <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Transactions</p>
+                              <p className="text-base text-[#0A0A0A] dark:text-white">{user.totalTransactions}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Total Spent</p>
+                              <p className="text-base text-[#0A0A0A] dark:text-white">{formatCurrency(user.totalSpent)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-full text-xs capitalize ${getStatusColor(user.status)}`}>
+                              {user.status}
+                            </span>
+                            {user.status === "blocked" ? (
+                              <button
+                                onClick={() => unblockUserMutation.mutate(user.id)}
+                                disabled={unblockUserMutation.isPending}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#E5F9E5] dark:hover:bg-[#1F3F1F] transition-colors disabled:opacity-50"
+                                title="Unblock user"
+                              >
+                                <CheckCircle className="w-4 h-4 text-[#00A63E] dark:text-[#4ADE80]" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => blockUserMutation.mutate(user.id)}
+                                disabled={blockUserMutation.isPending}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#FFE5E5] dark:hover:bg-[#3F1F1F] transition-colors disabled:opacity-50"
+                                title="Block user"
+                              >
+                                <Ban className="w-4 h-4 text-[#F59E0B] dark:text-[#FCD34D]" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                            >
+                              <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           ) : activeTab === "feedback" ? (

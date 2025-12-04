@@ -4,8 +4,8 @@ import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { HeaderActions } from "./HeaderActions";
 import { MonthCarousel } from "./MonthCarousel";
 import { useMonth } from "../context/MonthContext";
+import { useCurrency } from "../context/CurrencyContext";
 import { Budget, Category, categoriesAPI } from "../lib/api";
-import { formatCurrency } from "../utils/currency";
 import { invalidateQueries } from "../lib/queryClient";
 import { 
   useBudgets, 
@@ -16,10 +16,12 @@ import {
   useDeleteBudget
 } from "../lib/hooks";
 import { useToast } from "../context/ToastContext";
+import { PageSkeleton } from "./ui/ContentLoader";
 
 export function Budgets() {
   // Get month from shared context
   const { year, month } = useMonth();
+  const { formatCurrency } = useCurrency();
 
   // React Query hooks - data is cached and shared
   const { data: budgetsData, isLoading: budgetsLoading } = useBudgets({ year, month });
@@ -300,17 +302,43 @@ export function Budgets() {
   const totalSpent = Array.isArray(budgets) ? budgets.reduce((sum, b) => sum + (b.spent || 0), 0) : 0;
   const totalPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
+  // Persistent header component - always visible
+  const Header = (
+    <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
+      <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
+            <Wallet className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <HeaderActions />
+        </div>
+      </div>
+      {/* Mobile: Title and Month Carousel on same row */}
+      <div className="flex items-center justify-between lg:hidden">
+        <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Budgets</h2>
+        <MonthCarousel />
+      </div>
+      {/* Desktop layout - carousel on right side like Dashboard */}
+      <div className="hidden lg:flex items-center justify-between">
+        <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Budgets</h2>
+        <div className="flex items-center gap-4">
+          <MonthCarousel />
+          <HeaderActions />
+        </div>
+      </div>
+    </div>
+  );
+
   // Show skeleton on first load only
   if (budgetsLoading && !budgetsData) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Budgets</h2>
-          </div>
-        </div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-gray-400">Loading budgets...</div>
+        {Header}
+        <div className="flex-1 overflow-y-auto">
+          <PageSkeleton />
         </div>
       </div>
     );
@@ -320,32 +348,7 @@ export function Budgets() {
     <>
       <div className="flex flex-col h-full">
         {/* Header - Fixed */}
-        <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
-          <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <HeaderActions />
-            </div>
-          </div>
-          {/* Mobile: Title and Month Carousel on same row */}
-          <div className="flex items-center justify-between lg:hidden">
-            <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Budgets</h2>
-            <MonthCarousel />
-          </div>
-          {/* Desktop layout - carousel on right side like Dashboard */}
-          <div className="hidden lg:flex items-center justify-between">
-            <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Budgets</h2>
-            <div className="flex items-center gap-4">
-              <MonthCarousel />
-              <HeaderActions />
-            </div>
-          </div>
-        </div>
+        {Header}
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">

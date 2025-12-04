@@ -7,15 +7,17 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router';
-import { formatCurrency } from '../utils/currency';
+import { useCurrency } from '../context/CurrencyContext';
 import { HeaderActions } from './HeaderActions';
 import { MonthCarousel } from './MonthCarousel';
 import { useMonth } from '../context/MonthContext';
 import { useDashboardStats, useBudgets, useRecentTransactions } from '../lib/hooks';
 import { Budget, Transaction } from '../lib/api';
+import { DashboardSkeleton } from './ui/ContentLoader';
 
 export function Dashboard() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const { formatCurrency } = useCurrency();
   
   // Get month from shared context
   const { year, month } = useMonth();
@@ -47,18 +49,46 @@ export function Dashboard() {
 
   const isLoading = statsLoading || budgetsLoading || transactionsLoading;
 
+  // Persistent header component - always visible
+  const Header = (
+    <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
+      {/* Mobile Header */}
+      <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
+            <Wallet className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <HeaderActions />
+        </div>
+      </div>
+      
+      {/* Mobile: Title and Month Carousel on same row */}
+      <div className="flex items-center justify-between lg:hidden">
+        <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Home</h2>
+        <MonthCarousel />
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:flex items-center justify-between">
+        <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Home</h2>
+        <div className="flex items-center gap-4">
+          <MonthCarousel />
+          <HeaderActions />
+        </div>
+      </div>
+    </div>
+  );
+
   // Show skeleton while loading (only on first load - React Query caches after)
   if (isLoading && !statsData) {
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Home</h2>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 text-[#6366F1] animate-spin" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard...</p>
+        {Header}
+        <div className="flex-1 overflow-y-auto">
+          <DashboardSkeleton />
         </div>
       </div>
     );
@@ -67,35 +97,7 @@ export function Dashboard() {
   return (
     <div className="flex flex-col h-full">
       {/* Header - Fixed */}
-      <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-              <Wallet className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <HeaderActions />
-          </div>
-        </div>
-        
-        {/* Mobile: Title and Month Carousel on same row */}
-        <div className="flex items-center justify-between lg:hidden">
-          <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Home</h2>
-          <MonthCarousel />
-        </div>
-
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between">
-          <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Home</h2>
-          <div className="flex items-center gap-4">
-            <MonthCarousel />
-            <HeaderActions />
-          </div>
-        </div>
-      </div>
+      {Header}
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">

@@ -53,7 +53,7 @@ export function Feedback() {
             <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
               <Wallet className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
+            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
           </div>
           <div className="flex items-center gap-2">
             <HeaderActions />
@@ -78,7 +78,7 @@ export function Feedback() {
               We'd love to hear from you!
             </h3>
             <p className="text-white/90 text-xs lg:text-sm leading-relaxed">
-              Your feedback helps us improve Budget Tracker. Share your thoughts, suggestions, or
+              Your feedback helps us improve FinanEase. Share your thoughts, suggestions, or
               report any issues you've encountered.
             </p>
           </div>
@@ -207,7 +207,7 @@ export function Feedback() {
             </div>
             <p className="text-sm text-[#717182] dark:text-[#A1A1AA] mb-6">
               Thank you for your feedback! We appreciate you taking the time to help us improve
-              Budget Tracker. Our team will review your submission and get back to you soon.
+              FinanEase. Our team will review your submission and get back to you soon.
             </p>
             <button
               onClick={() => setShowSuccessModal(false)}

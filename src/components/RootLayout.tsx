@@ -2,6 +2,7 @@ import { Navigate } from "react-router";
 import { useState, useRef, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
+import { MobileSidebar } from "./MobileSidebar";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { useAuth } from "../context/AuthContext";
 import { KeepAliveOutlet } from "./KeepAliveOutlet";
@@ -11,6 +12,7 @@ import { preloadAllMainRoutes } from "../lib/routePreloader";
 export function RootLayout() {
   const { isAuthenticated, loading } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   
   // Restore scroll position when navigating back
@@ -33,7 +35,10 @@ export function RootLayout() {
     return (
       <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="relative mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full border-4 border-[#6366F1]/20 dark:border-[#6366F1]/30"></div>
+            <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-[#6366F1] animate-spin"></div>
+          </div>
           <p className="text-[#717182] dark:text-[#A1A1AA]">Loading...</p>
         </div>
       </div>
@@ -75,9 +80,15 @@ export function RootLayout() {
       {/* Floating Action Button */}
       <FloatingActionButton />
       
+      {/* Mobile Sidebar */}
+      <MobileSidebar 
+        isOpen={isMobileSidebarOpen} 
+        onClose={() => setIsMobileSidebarOpen(false)} 
+      />
+      
       {/* Mobile Navigation */}
       <div className="lg:hidden">
-        <MobileNav />
+        <MobileNav onMenuClick={() => setIsMobileSidebarOpen(true)} />
       </div>
     </div>
   );

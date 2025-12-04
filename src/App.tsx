@@ -10,24 +10,27 @@ import { EmojiProvider } from './context/EmojiContext';
 import { KeepAliveProvider } from './context/KeepAliveContext';
 import { ToastProvider } from './context/ToastContext';
 import { MonthProvider } from './context/MonthContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <MonthProvider>
-              <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
-                <EmojiProvider>
-                  <NotificationProvider>
-                    <RouterProvider router={router} />
-                  </NotificationProvider>
-                </EmojiProvider>
-              </KeepAliveProvider>
-            </MonthProvider>
-          </AuthProvider>
-        </ToastProvider>
+        <CurrencyProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <MonthProvider>
+                <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
+                  <EmojiProvider>
+                    <NotificationProvider>
+                      <RouterProvider router={router} />
+                    </NotificationProvider>
+                  </EmojiProvider>
+                </KeepAliveProvider>
+              </MonthProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </CurrencyProvider>
       </DarkModeProvider>
       {/* Only show devtools in development */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

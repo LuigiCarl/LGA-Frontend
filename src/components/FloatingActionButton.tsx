@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Plus, X, Receipt, PieChart, Tag, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { AddTransaction } from './AddTransaction';
@@ -48,6 +48,37 @@ export function FloatingActionButton() {
     '#FFB6B9',
     '#FEC8D8',
   ];
+
+  // Calculate menu position based on button position
+  // Note: position.x = distance from RIGHT edge, position.y = distance from BOTTOM edge
+  const menuPosition = useMemo(() => {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const buttonSize = 56;
+    const menuHeight = menuItems.length * 56; // Approximate menu height
+    
+    // Calculate actual distances from edges
+    // position.x is distance from right, so left distance = windowWidth - position.x - buttonSize
+    const distanceFromLeft = windowWidth - position.x - buttonSize;
+    const distanceFromTop = windowHeight - position.y - buttonSize;
+    const distanceFromBottom = position.y;
+    
+    // Determine horizontal: where should menu EXTEND to (not where button is)
+    // If button is on left side (distanceFromLeft < half screen), menu should extend RIGHT
+    // If button is on right side, menu should extend LEFT
+    const menuExtendsRight = distanceFromLeft < windowWidth / 2;
+    
+    // Determine vertical: where should menu appear
+    // If button is near BOTTOM (small distanceFromBottom), show menu ABOVE
+    // If button is near TOP (small distanceFromTop), show menu BELOW
+    // Use distanceFromTop to decide - if not enough space above, show below
+    const showAbove = distanceFromTop > menuHeight + 20;
+    
+    return {
+      extendsRight: menuExtendsRight, // true = menu extends to the right of button
+      showAbove: showAbove,           // true = menu appears above button
+    };
+  }, [position, menuItems.length]);
 
   // Handle drag start
   const handleDragStart = (clientX: number, clientY: number) => {
@@ -193,9 +224,15 @@ export function FloatingActionButton() {
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
       >
-        {/* Menu Items */}
+        {/* Menu Items - Dynamically positioned */}
         {isOpen && (
-          <div className="absolute bottom-16 right-0 mb-2 space-y-2 min-w-[200px]">
+          <div 
+            className={`absolute space-y-2 min-w-[200px] ${
+              menuPosition.showAbove ? 'bottom-16 mb-2' : 'top-16 mt-2'
+            } ${
+              menuPosition.extendsRight ? 'left-0' : 'right-0'
+            }`}
+          >
             {menuItems.map((item, index) => {
               const Icon = item.icon;
               return (

@@ -1,16 +1,18 @@
-import { Wallet, Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X } from "lucide-react";
+import { Wallet, Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X, Hash } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useNotifications } from "../context/NotificationContext";
 import { useDarkMode } from "../context/DarkModeContext";
 import { useEmoji } from "../context/EmojiContext";
+import { useCurrency, CURRENCIES, CurrencyCode } from "../context/CurrencyContext";
 import { profileAPI, authAPI } from "../lib/api";
+import { useToast } from "../context/ToastContext";
 
 
 export function Profile() {
-  const { addNotification } = useNotifications();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { emoji, setEmoji } = useEmoji();
+  const { currency, setCurrency, useCompactNumbers, setUseCompactNumbers } = useCurrency();
+  const toast = useToast();
   const navigate = useNavigate();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -37,12 +39,10 @@ export function Profile() {
             setEditForm({
               name: user.name || '',
               email: user.email || '',
-              currency: 'PHP', // Default currency, backend doesn't store user currency yet
             });
             setOriginalData({
               name: user.name || '',
               email: user.email || '',
-              currency: 'PHP', // Default currency
             });
           }
         } else {
@@ -52,12 +52,10 @@ export function Profile() {
           setEditForm({
             name: user.name || '',
             email: user.email || '',
-            currency: 'PHP', // Default currency, backend doesn't store user currency yet
           });
           setOriginalData({
             name: user.name || '',
             email: user.email || '',
-            currency: 'PHP', // Default currency
           });
         }
       } catch (error) {
@@ -86,14 +84,12 @@ export function Profile() {
   const [editForm, setEditForm] = useState({
     name: "",
     email: "",
-    currency: "PHP",
   });
 
   // Original data for cancel functionality
   const [originalData, setOriginalData] = useState({
     name: "",
     email: "",
-    currency: "PHP",
   });
 
   // Password strength calculation
@@ -162,17 +158,13 @@ export function Profile() {
       setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
       setPasswordErrors([]);
 
-      addNotification({
-        title: "Password Updated",
-        description: "Your password has been changed successfully!",
-        type: "success",
-      });
+      toast.success("Password updated successfully!");
 
       // Hide success message after 3 seconds
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (err: any) {
-      console.error('Failed to update password:', err);
       const errorMessage = err.response?.data?.message || 'Failed to update password';
+      toast.error(errorMessage);
       setPasswordErrors([errorMessage]);
     }
   };
@@ -211,22 +203,13 @@ export function Profile() {
         currency: editForm.currency,
       });
 
-      // Add notification
-      addNotification({
-        title: "Profile Updated",
-        description: "Your profile information has been updated successfully!",
-        type: "success",
-      });
+      // Show toast notification
+      toast.success("Profile updated successfully!");
 
       // Exit edit mode
       setIsEditMode(false);
     } catch (err: any) {
-      console.error('Failed to update profile:', err);
-      addNotification({
-        title: "Update Failed",
-        description: err.response?.data?.message || "Failed to update profile. Please try again.",
-        type: "error",
-      });
+      toast.error(err.response?.data?.message || "Failed to update profile. Please try again.");
     }
   };
 
@@ -238,7 +221,7 @@ export function Profile() {
           <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
             <Wallet className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">Budget Tracker</h1>
+          <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
         </div>
         <h2 className="text-2xl leading-8 text-[#0A0A0A] dark:text-white capitalize">Profile</h2>
       </div>
@@ -309,11 +292,7 @@ export function Profile() {
                   </div>
                   <div className="h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] opacity-50 rounded-lg flex items-center justify-between">
                     <span className="text-sm text-[#0A0A0A] dark:text-white">
-                      {editForm.currency === "PHP" ? "PHP - Philippine Peso" : 
-                       editForm.currency === "USD" ? "USD - US Dollar" :
-                       editForm.currency === "EUR" ? "EUR - Euro" :
-                       editForm.currency === "GBP" ? "GBP - British Pound" :
-                       `${editForm.currency}`}
+                      {CURRENCIES[currency]?.code} - {CURRENCIES[currency]?.name}
                     </span>
                   </div>
                 </div>
@@ -355,16 +334,24 @@ export function Profile() {
                     <DollarSign className="w-4 h-4 text-[#0A0A0A] dark:text-[#A78BFA]" />
                     <label className="text-sm text-[#0A0A0A] dark:text-white">Currency</label>
                   </div>
-                  <div className="h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg flex items-center justify-between">
+                  <div className="h-9 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg flex items-center">
                     <select
-                      value={editForm.currency}
-                      onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
-                      className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white appearance-none cursor-pointer border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none"
+                      value={currency}
+                      onChange={(e) => {
+                        setCurrency(e.target.value as CurrencyCode);
+                        toast.success(`Currency changed to ${CURRENCIES[e.target.value as CurrencyCode].name}`);
+                      }}
+                      className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#6366F1]"
                     >
-                      <option value="PHP">PHP - Philippine Peso</option>
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
+                      {Object.values(CURRENCIES).map((curr) => (
+                        <option 
+                          key={curr.code} 
+                          value={curr.code}
+                          className="bg-white dark:bg-[#27272A] text-[#0A0A0A] dark:text-white"
+                        >
+                          {curr.code} - {curr.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -434,6 +421,28 @@ export function Profile() {
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
+                  <Hash className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
+                  <div>
+                    <p className="text-base text-[#0A0A0A] dark:text-white">Compact Numbers</p>
+                    <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Show 1K, 1M format</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setUseCompactNumbers(!useCompactNumbers)}
+                  className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
+                    useCompactNumbers 
+                      ? "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] justify-end shadow-[#6366F1]/30" 
+                      : "bg-[#CBCED4] justify-start"
+                  }`}
+                >
+                  <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
+                </button>
+              </div>
+
+              <div className="h-px bg-black/10 dark:bg-white/10" />
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
                   <Globe className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
                   <div>
                     <p className="text-base text-[#0A0A0A] dark:text-white">Language</p>
@@ -466,7 +475,7 @@ export function Profile() {
               <h3 className="text-base text-[#0A0A0A] dark:text-white">About</h3>
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Budget Tracker App v1.0.0</p>
+              <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">FinanEase v1.0</p>
               <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Manage your finances with ease</p>
             </div>
           </div>
@@ -546,11 +555,7 @@ export function Profile() {
                       onClick={() => {
                         setEmoji(emoticon);
                         setShowEmoticonPicker(false);
-                        addNotification({
-                          title: "Avatar Updated",
-                          description: "Your profile avatar has been changed successfully!",
-                          type: "success",
-                        });
+                        toast.success("Avatar updated successfully!");
                       }}
                       className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
                         emoji === emoticon

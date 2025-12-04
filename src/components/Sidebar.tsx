@@ -74,9 +74,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <Wallet className="w-6 h-6 text-white" />
         </div>
         {!isCollapsed && (
-          <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white whitespace-nowrap overflow-hidden">
-            Budget Tracker
-          </h1>
+          <div>
+            <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white whitespace-nowrap overflow-hidden">
+              FinanEase
+            </h1>
+            <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">v1.0</p>
+          </div>
         )}
       </div>
 

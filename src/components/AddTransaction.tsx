@@ -4,6 +4,7 @@ import { categoriesAPI, accountsAPI, transactionsAPI } from "../lib/api";
 import { useCreateTransaction } from "../lib/hooks";
 import { invalidateQueries } from "../lib/queryClient";
 import { useToast } from "../context/ToastContext";
+import { useCurrency } from "../context/CurrencyContext";
 
 // interface Transaction {
 //   id: number;
