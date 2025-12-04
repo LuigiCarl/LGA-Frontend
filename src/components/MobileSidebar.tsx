@@ -9,12 +9,15 @@ import {
   DollarSign,
   ChevronDown,
   Hash,
+  Download,
+  Check,
 } from 'lucide-react';
 import { useState } from 'react';
 import { PreloadLink } from './PreloadLink';
 import { useAuth } from '../context/AuthContext';
 import { useEmoji } from '../context/EmojiContext';
 import { useCurrency, CURRENCIES, CurrencyCode } from '../context/CurrencyContext';
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -27,8 +30,10 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const { user, isAdmin, logout } = useAuth();
   const { emoji } = useEmoji();
   const { currency, setCurrency, useCompactNumbers, setUseCompactNumbers } = useCurrency();
+  const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
 
   const menuItems = [
     { path: '/dashboard/profile', icon: User, label: 'Profile' },
@@ -215,6 +220,56 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
           <p className="px-3 text-xs text-[#717182] dark:text-[#71717A] mb-2">
             Show 1K, 1M instead of 1,000, 1,000,000
           </p>
+
+          {/* Install App Button */}
+          {(isInstallable || isInstalled) && (
+            <>
+              <p className="px-3 mt-4 mb-2 text-xs font-medium text-[#717182] dark:text-[#A1A1AA] uppercase tracking-wider">
+                App
+              </p>
+              <div className="mb-1 px-3">
+                <button
+                  onClick={async () => {
+                    if (isInstalled) return;
+                    setIsInstalling(true);
+                    await installApp();
+                    setIsInstalling(false);
+                  }}
+                  disabled={isInstalled || isInstalling}
+                  className={`w-full h-12 rounded-[10px] flex items-center justify-between transition-colors ${
+                    isInstalled
+                      ? 'bg-green-50 dark:bg-green-900/20'
+                      : 'hover:bg-[#F9FAFB] dark:hover:bg-[#18181B]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isInstalled ? (
+                      <Check className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Download className={`w-5 h-5 ${isInstalling ? 'animate-bounce' : ''} text-[#6366F1] dark:text-[#A78BFA]`} />
+                    )}
+                    <span className={`text-base ${
+                      isInstalled 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-[#0A0A0A] dark:text-white'
+                    }`}>
+                      {isInstalled ? 'App Installed' : isInstalling ? 'Installing...' : 'Install App'}
+                    </span>
+                  </div>
+                  {!isInstalled && !isInstalling && (
+                    <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">
+                      Add to Home
+                    </span>
+                  )}
+                </button>
+              </div>
+              {!isInstalled && (
+                <p className="px-3 text-xs text-[#717182] dark:text-[#71717A] mb-2">
+                  Install for offline access & faster loading
+                </p>
+              )}
+            </>
+          )}
         </nav>
 
         {/* Sign Out Button */}
