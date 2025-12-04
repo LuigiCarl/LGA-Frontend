@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+</head>
+<body>
+    <h1>Budget Tracker API Test</h1>
+    <div id="status">Testing API connection...</div>
+    
+    <script>
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // Test 1: Login
+                const loginResponse = await fetch('http://127.0.0.1:8000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@example.com',
+                        password: 'password'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status}`);
+                }
+                
+                const loginData = await loginResponse.json();
+                const token = loginData.token;
+                
+                statusDiv.innerHTML += '<br>✅ Login successful!';
+                
+                // Test 2: Get Dashboard Stats
+                const statsResponse = await fetch('http://127.0.0.1:8000/api/dashboard/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!statsResponse.ok) {
+                    throw new Error(`Stats failed: ${statsResponse.status}`);
+                }
+                
+                const statsData = await statsResponse.json();
+                
+                statusDiv.innerHTML += '<br>✅ Dashboard stats retrieved!';
+                statusDiv.innerHTML += `<br>📊 Balance: ₱${statsData.total_balance}`;
+                statusDiv.innerHTML += `<br>💰 Income: ₱${statsData.total_income}`;
+                statusDiv.innerHTML += `<br>💸 Expenses: ₱${statsData.total_expenses}`;
+                
+                // Test 3: Get Accounts
+                const accountsResponse = await fetch('http://127.0.0.1:8000/api/accounts', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!accountsResponse.ok) {
+                    throw new Error(`Accounts failed: ${accountsResponse.status}`);
+                }
+                
+                const accountsData = await accountsResponse.json();
+                
+                statusDiv.innerHTML += `<br>✅ Accounts retrieved: ${accountsData.accounts.length} accounts`;
+                
+                statusDiv.innerHTML += '<br><br><strong>🎉 ALL API TESTS PASSED! The backend is working correctly.</strong>';
+                
+            } catch (error) {
+                statusDiv.innerHTML += `<br>❌ Error: ${error.message}`;
+                console.error('API Test Error:', error);
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

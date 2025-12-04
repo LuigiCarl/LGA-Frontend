@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #6366F1;
+            font-size: 18px;
+        }
+        button {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #4F46E5;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #D1FAE5;
+            border: 1px solid #10B981;
+            color: #065F46;
+        }
+        .error {
+            background: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #991B1B;
+        }
+        .info {
+            background: #E0E7FF;
+            border: 1px solid #6366F1;
+            color: #3730A3;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 500;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔌 Backend Connection Test</h1>
+        <p>API Base URL: <strong id="apiUrl">http://localhost:8000/api</strong></p>
+
+        <!-- Test 1: Backend Health Check -->
+        <div class="test-section">
+            <h2>1. Backend Health Check</h2>
+            <button onclick="testBackendHealth()">Test Connection</button>
+            <div id="healthResult"></div>
+        </div>
+
+        <!-- Test 2: Register New User -->
+        <div class="test-section">
+            <h2>2. Register New User</h2>
+            <label>Name:</label>
+            <input type="text" id="registerName" value="Test User" />
+            <label>Email:</label>
+            <input type="email" id="registerEmail" value="test@example.com" />
+            <label>Password:</label>
+            <input type="password" id="registerPassword" value="password123" />
+            <label>Confirm Password:</label>
+            <input type="password" id="registerPasswordConfirm" value="password123" />
+            <button onclick="testRegister()">Register</button>
+            <div id="registerResult"></div>
+        </div>
+
+        <!-- Test 3: Login -->
+        <div class="test-section">
+            <h2>3. Login</h2>
+            <label>Email:</label>
+            <input type="email" id="loginEmail" value="test@example.com" />
+            <label>Password:</label>
+            <input type="password" id="loginPassword" value="password123" />
+            <button onclick="testLogin()">Login</button>
+            <button onclick="clearToken()">Clear Token</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Test 4: Get Dashboard Stats (Protected) -->
+        <div class="test-section">
+            <h2>4. Get Dashboard Stats (Protected)</h2>
+            <p style="color: #666; font-size: 13px;">Requires authentication token from login</p>
+            <button onclick="testDashboardStats()">Get Dashboard Stats</button>
+            <div id="dashboardResult"></div>
+        </div>
+
+        <!-- Test 5: Get User Info (Protected) -->
+        <div class="test-section">
+            <h2>5. Get User Info (Protected)</h2>
+            <button onclick="testGetUser()">Get Current User</button>
+            <div id="userResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('auth_token');
+
+        // Helper function to make API calls
+        async function apiCall(endpoint, options = {}) {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...options.headers,
+                },
+                ...options,
+            };
+
+            if (authToken && !config.headers.Authorization) {
+                config.headers.Authorization = `Bearer ${authToken}`;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+                const data = await response.json();
+                
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    data: data,
+                };
+            } catch (error) {
+                return {
+                    ok: false,
+                    status: 0,
+                    data: { error: error.message },
+                };
+            }
+        }
+
+        function showResult(elementId, success, message, data = null) {
+            const element = document.getElementById(elementId);
+            const className = success ? 'success' : 'error';
+            const icon = success ? '✅' : '❌';
+            
+            let html = `<div class="result ${className}">${icon} ${message}`;
+            if (data) {
+                html += `\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            }
+            html += '</div>';
+            
+            element.innerHTML = html;
+        }
+
+        // Test 1: Backend Health Check
+        async function testBackendHealth() {
+            showResult('healthResult', null, '🔄 Testing connection...', null);
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/user', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.status === 401) {
+                    showResult('healthResult', true, 'Backend is running! (Received expected 401 Unauthorized)', 
+                        { message: 'Backend is accessible and responding to requests' });
+                } else {
+                    showResult('healthResult', true, `Backend is running! (Status: ${response.status})`, 
+                        { message: 'Backend is accessible' });
+                }
+            } catch (error) {
+                showResult('healthResult', false, 'Backend connection failed!', { error: error.message });
+            }
+        }
+
+        // Test 2: Register
+        async function testRegister() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const password_confirmation = document.getElementById('registerPasswordConfirm').value;
+
+            showResult('registerResult', null, '🔄 Registering user...', null);
+
+            const result = await apiCall('/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password, password_confirmation }),
+            });
+
+            if (result.ok) {
+                authToken = result.data.token;
+                localStorage.setItem('auth_token', authToken);
+                showResult('registerResult', true, 'Registration successful!', result.data);
+            } else {
+                showResult('registerResult', false, 'Registration failed!', result.data);
+            }
+        }
+
+        // Test 3: Login
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            showResult('loginResult', null, '🔄 Logging in...', null);
+
+            const result = await apiCall('/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (result.ok) {
+                authToken = result.data.token;
+                localStorage.setItem('auth_token', authToken);
+                showResult('loginResult', true, 'Login successful!', result.data);
+            } else {
+                showResult('loginResult', false, 'Login failed!', result.data);
+            }
+        }
+
+        function clearToken() {
+            authToken = null;
+            localStorage.removeItem('auth_token');
+            showResult('loginResult', true, 'Token cleared!', { message: 'Authentication token has been removed' });
+        }
+
+        // Test 4: Dashboard Stats
+        async function testDashboardStats() {
+            if (!authToken) {
+                showResult('dashboardResult', false, 'Please login first!', 
+                    { message: 'Authentication token is required' });
+                return;
+            }
+
+            showResult('dashboardResult', null, '🔄 Fetching dashboard stats...', null);
+
+            const result = await apiCall('/dashboard/stats');
+
+            if (result.ok) {
+                showResult('dashboardResult', true, 'Dashboard stats retrieved!', result.data);
+            } else {
+                showResult('dashboardResult', false, 'Failed to get dashboard stats!', result.data);
+            }
+        }
+
+        // Test 5: Get User
+        async function testGetUser() {
+            if (!authToken) {
+                showResult('userResult', false, 'Please login first!', 
+                    { message: 'Authentication token is required' });
+                return;
+            }
+
+            showResult('userResult', null, '🔄 Fetching user info...', null);
+
+            const result = await apiCall('/user');
+
+            if (result.ok) {
+                showResult('userResult', true, 'User info retrieved!', result.data);
+            } else {
+                showResult('userResult', false, 'Failed to get user info!', result.data);
+            }
+        }
+
+        // Check if token exists on page load
+        window.addEventListener('load', () => {
+            if (authToken) {
+                const info = document.createElement('div');
+                info.className = 'result info';
+                info.textContent = '✅ Auth token found in localStorage';
+                document.querySelector('.test-container').insertBefore(info, document.querySelector('.test-section'));
+            }
+        });
+    </script>
+</body>
+</html>
