@@ -1,14 +1,14 @@
 import axios, { AxiosInstance } from 'axios';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://budget-tracker-xpoz.onrender.com/api';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
   withCredentials: false,
 });
@@ -195,24 +195,26 @@ export const authAPI = {
     const response = await api.post('/login', credentials);
     return response.data;
   },
-  
+
   register: async (data: RegisterData): Promise<{ token: string; user: User }> => {
     const response = await api.post('/register', data);
     return response.data;
   },
-  
+
   logout: async (): Promise<void> => {
     await api.post('/logout');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
   },
-  
+
   getUser: async (): Promise<User> => {
     const response = await api.get('/user');
     return response.data;
   },
 
-  forgotPassword: async (data: ForgotPasswordData): Promise<{ status: string; message: string }> => {
+  forgotPassword: async (
+    data: ForgotPasswordData
+  ): Promise<{ status: string; message: string }> => {
     const response = await api.post('/forgot-password', data);
     return response.data;
   },
@@ -234,11 +236,15 @@ export const profileAPI = {
     const response = await api.put('/profile', data);
     return response.data.user || response.data;
   },
-  
-  updatePassword: async (data: { current_password: string; password: string; password_confirmation: string }): Promise<void> => {
+
+  updatePassword: async (data: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }): Promise<void> => {
     await api.put('/password', data);
   },
-  
+
   deleteAccount: async (): Promise<void> => {
     await api.delete('/account');
   },
@@ -256,8 +262,12 @@ export const dashboardAPI = {
     const response = await api.get(`/dashboard/stats${queryString ? `?${queryString}` : ''}`);
     return response.data;
   },
-  
-  getRecentTransactions: async (limit = 10, year?: number, month?: number): Promise<Transaction[]> => {
+
+  getRecentTransactions: async (
+    limit = 10,
+    year?: number,
+    month?: number
+  ): Promise<Transaction[]> => {
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
     if (year && month) {
@@ -268,7 +278,7 @@ export const dashboardAPI = {
     // API returns { transactions: [...], total_count: ... }
     return response.data.transactions || response.data || [];
   },
-  
+
   getMonthlyAnalytics: async (year?: number, month?: number): Promise<any> => {
     const params = new URLSearchParams();
     if (year) params.append('year', year.toString());
@@ -276,7 +286,7 @@ export const dashboardAPI = {
     const response = await api.get(`/dashboard/monthly-analytics?${params}`);
     return response.data;
   },
-  
+
   getBudgetProgress: async (): Promise<any> => {
     const response = await api.get('/dashboard/budget-progress');
     return response.data;
@@ -289,22 +299,22 @@ export const accountsAPI = {
     const response = await api.get('/accounts', { params });
     return response.data.accounts || response.data;
   },
-  
+
   getOne: async (id: number): Promise<Account> => {
     const response = await api.get(`/accounts/${id}`);
     return response.data.account || response.data;
   },
-  
+
   create: async (data: Partial<Account>): Promise<Account> => {
     const response = await api.post('/accounts', data);
     return response.data.account || response.data;
   },
-  
+
   update: async (id: number, data: Partial<Account>): Promise<Account> => {
     const response = await api.put(`/accounts/${id}`, data);
     return response.data.account || response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/accounts/${id}`);
   },
@@ -316,22 +326,22 @@ export const categoriesAPI = {
     const response = await api.get('/categories');
     return response.data.categories || response.data;
   },
-  
+
   getOne: async (id: number): Promise<Category> => {
     const response = await api.get(`/categories/${id}`);
     return response.data.category || response.data;
   },
-  
+
   create: async (data: Partial<Category>): Promise<Category> => {
     const response = await api.post('/categories', data);
     return response.data.category || response.data;
   },
-  
+
   update: async (id: number, data: Partial<Category>): Promise<Category> => {
     const response = await api.put(`/categories/${id}`, data);
     return response.data.category || response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/categories/${id}`);
   },
@@ -339,7 +349,15 @@ export const categoriesAPI = {
 
 // Transactions
 export const transactionsAPI = {
-  getAll: async (params?: any): Promise<{ data: Transaction[]; total: number; current_page: number; per_page?: number; last_page?: number }> => {
+  getAll: async (
+    params?: any
+  ): Promise<{
+    data: Transaction[];
+    total: number;
+    current_page: number;
+    per_page?: number;
+    last_page?: number;
+  }> => {
     const response = await api.get('/transactions', { params });
     // Handle nested paginated response: { success: true, transactions: { data: [], total: N, ... } }
     const transactionsData = response.data.transactions || response.data;
@@ -351,27 +369,34 @@ export const transactionsAPI = {
       last_page: transactionsData.last_page,
     };
   },
-  
+
   getOne: async (id: number): Promise<Transaction> => {
     const response = await api.get(`/transactions/${id}`);
     return response.data;
   },
-  
-  create: async (data: Partial<Transaction>): Promise<{ transaction: Transaction; budget_warning?: string; budget_info?: any }> => {
+
+  create: async (
+    data: Partial<Transaction>
+  ): Promise<{ transaction: Transaction; budget_warning?: string; budget_info?: any }> => {
     const response = await api.post('/transactions', data);
     return response.data;
   },
-  
+
   update: async (id: number, data: Partial<Transaction>): Promise<Transaction> => {
     const response = await api.put(`/transactions/${id}`, data);
     return response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/transactions/${id}`);
   },
-  
-  checkBudget: async (data: { category_id: number; amount: number; date: string; type: 'income' | 'expense' }): Promise<{
+
+  checkBudget: async (data: {
+    category_id: number;
+    amount: number;
+    date: string;
+    type: 'income' | 'expense';
+  }): Promise<{
     success: boolean;
     has_budget: boolean;
     budget_info?: {
@@ -403,22 +428,22 @@ export const budgetsAPI = {
     const budgetsData = response.data.budgets || response.data;
     return budgetsData.data || budgetsData || [];
   },
-  
+
   getOne: async (id: number): Promise<Budget> => {
     const response = await api.get(`/budgets/${id}`);
     return response.data.budget || response.data;
   },
-  
+
   create: async (data: Partial<Budget>): Promise<Budget> => {
     const response = await api.post('/budgets', data);
     return response.data.budget || response.data;
   },
-  
+
   update: async (id: number, data: Partial<Budget>): Promise<Budget> => {
     const response = await api.put(`/budgets/${id}`, data);
     return response.data.budget || response.data;
   },
-  
+
   delete: async (id: number): Promise<void> => {
     await api.delete(`/budgets/${id}`);
   },
@@ -430,13 +455,18 @@ export const feedbackAPI = {
     const response = await api.post('/feedback', data);
     return response.data.feedback || response.data;
   },
-  
+
   getMyFeedback: async (): Promise<Feedback[]> => {
     const response = await api.get('/feedback/my');
     return response.data.feedbacks || response.data;
   },
 
-  getAll: async (params?: { search?: string; status?: string; page?: number; per_page?: number }): Promise<{ data: Feedback[]; total: number; current_page: number }> => {
+  getAll: async (params?: {
+    search?: string;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<{ data: Feedback[]; total: number; current_page: number }> => {
     const response = await api.get('/feedback', { params });
     return response.data.feedbacks || response.data;
   },
@@ -453,7 +483,7 @@ export const notificationsAPI = {
     const response = await api.get(`/notifications/recent?limit=${limit}`);
     return response.data.notifications || response.data || [];
   },
-  
+
   getUnreadCount: async (): Promise<number> => {
     const response = await api.get('/notifications/unread-count');
     return response.data.count || 0;
@@ -468,76 +498,83 @@ export const adminAPI = {
       const response = await api.get('/admin/users', { params });
       return response.data;
     },
-    
+
     getOne: async (id: number): Promise<User> => {
       const response = await api.get(`/admin/users/${id}`);
       return response.data;
     },
-    
+
     create: async (data: Partial<User>): Promise<User> => {
       const response = await api.post('/admin/users', data);
       return response.data;
     },
-    
+
     update: async (id: number, data: Partial<User>): Promise<User> => {
       const response = await api.put(`/admin/users/${id}`, data);
       return response.data;
     },
-    
+
     delete: async (id: number): Promise<void> => {
       await api.delete(`/admin/users/${id}`);
     },
-    
+
     block: async (id: number): Promise<User> => {
       const response = await api.post(`/admin/users/${id}/block`);
       return response.data.user || response.data;
     },
-    
+
     unblock: async (id: number): Promise<User> => {
       const response = await api.post(`/admin/users/${id}/unblock`);
       return response.data.user || response.data;
     },
-    
+
     getStatistics: async (): Promise<any> => {
       const response = await api.get('/admin/users/statistics');
       return response.data;
     },
   },
-  
+
   // Feedback Management
   feedback: {
     getAll: async (params?: any): Promise<{ data: Feedback[]; total: number }> => {
       const response = await api.get('/admin/feedback', { params });
       return response.data;
     },
-    
+
     getOne: async (id: number): Promise<Feedback> => {
       const response = await api.get(`/admin/feedback/${id}`);
       return response.data;
     },
-    
-    updateStatus: async (id: number, status: 'new' | 'reviewed' | 'resolved'): Promise<Feedback> => {
+
+    updateStatus: async (
+      id: number,
+      status: 'new' | 'reviewed' | 'resolved'
+    ): Promise<Feedback> => {
       const response = await api.patch(`/admin/feedback/${id}/status`, { status });
       return response.data;
     },
-    
+
     delete: async (id: number): Promise<void> => {
       await api.delete(`/admin/feedback/${id}`);
     },
   },
-  
+
   // Notification Management
   notifications: {
     getAll: async (params?: any): Promise<{ data: Notification[]; total: number }> => {
       const response = await api.get('/admin/notifications', { params });
       return response.data;
     },
-    
-    create: async (data: { title: string; description: string; type: 'info' | 'success' | 'warning' | 'error' }): Promise<Notification> => {
+
+    create: async (data: {
+      title: string;
+      description: string;
+      type: 'info' | 'success' | 'warning' | 'error';
+    }): Promise<Notification> => {
       const response = await api.post('/admin/notifications', data);
       return response.data;
     },
-    
+
     delete: async (id: number): Promise<void> => {
       await api.delete(`/admin/notifications/${id}`);
     },
