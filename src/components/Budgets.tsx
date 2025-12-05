@@ -93,8 +93,11 @@ export function Budgets() {
   ];
 
   // Use local categories if available, otherwise use query data
+  // Exclude transfer categories from budget selection
   const allAvailableCategories: Category[] = useMemo(() => {
-    const queryCategories = (categoriesData || []).filter((cat: Category) => cat.type === 'expense');
+    const queryCategories = (categoriesData || [])
+      .filter((cat: Category) => cat.type === 'expense')
+      .filter((cat: Category) => cat.name !== 'Transfer Out' && cat.name !== 'Transfer In');
     // Merge local categories with query categories, avoiding duplicates
     const localIds = new Set(localCategories.map(c => c.id));
     return [...localCategories, ...queryCategories.filter(c => !localIds.has(c.id))];

@@ -190,20 +190,20 @@ export function useDeleteBudget() {
 // Categories Hooks
 // ============================================
 
-export function useCategories() {
+export function useCategories(options?: { excludeTransfer?: boolean }) {
   return useQuery({
-    queryKey: queryKeys.categories.list(),
-    queryFn: () => categoriesAPI.getAll(),
+    queryKey: [...queryKeys.categories.list(), { excludeTransfer: options?.excludeTransfer }],
+    queryFn: () => categoriesAPI.getAll(options),
     staleTime: 30 * 1000, // 30 seconds - categories can be created inline
     refetchOnWindowFocus: true,
   });
 }
 
-export function useCategoriesByType(type: 'income' | 'expense') {
+export function useCategoriesByType(type: 'income' | 'expense', options?: { excludeTransfer?: boolean }) {
   return useQuery({
-    queryKey: queryKeys.categories.byType(type),
+    queryKey: [...queryKeys.categories.byType(type), { excludeTransfer: options?.excludeTransfer }],
     queryFn: async () => {
-      const categories = await categoriesAPI.getAll();
+      const categories = await categoriesAPI.getAll(options);
       return categories.filter((cat: Category) => cat.type === type);
     },
     staleTime: 30 * 1000, // 30 seconds

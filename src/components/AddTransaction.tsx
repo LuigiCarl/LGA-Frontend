@@ -100,7 +100,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
       try {
         const [accountsData, categoriesData] = await Promise.all([
           accountsAPI.getAll(),
-          categoriesAPI.getAll()
+          categoriesAPI.getAll({ excludeTransfer: true }) // Exclude Transfer In/Out categories
         ]);
         setAccounts(accountsData);
         setCategories(categoriesData);

@@ -116,14 +116,14 @@ export function Dashboard() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 text-[#717182] dark:text-white/90">
                   <Wallet className="w-4 h-4" />
-                  <p className="text-xs lg:text-sm">Monthly Balance</p>
+                  <p className="text-xs lg:text-sm">Total Balance</p>
                 </div>
               </div>
 
               <h3 className="text-3xl lg:text-4xl leading-10 text-[#0A0A0A] dark:text-white mb-4">
                 {formatCurrency(dashboardData.total_balance)}
               </h3>
-              <div className="grid grid-cols-2 gap-3 lg:gap-4">
+              <div className="grid grid-cols-3 gap-3 lg:gap-4">
                 <div className="bg-[#F3F3F5] dark:bg-white/20 backdrop-blur-sm rounded-[10px] p-2 lg:p-3">
                   <div className="flex items-center gap-1 text-[#717182] dark:text-white/80 mb-1">
                     <TrendingUp className="w-3 h-3 text-green-500" />
@@ -140,6 +140,15 @@ export function Dashboard() {
                   </div>
                   <p className="text-base lg:text-lg text-[#0A0A0A] dark:text-white">
                     {formatCurrency(dashboardData.total_expenses)}
+                  </p>
+                </div>
+                <div className="bg-[#F3F3F5] dark:bg-white/20 backdrop-blur-sm rounded-[10px] p-2 lg:p-3">
+                  <div className="flex items-center gap-1 text-[#717182] dark:text-white/80 mb-1">
+                    <Wallet className="w-3 h-3 text-[#6366F1]" />
+                    <span className="text-xs text-[#6366F1]">Month Net</span>
+                  </div>
+                  <p className={`text-base lg:text-lg ${(dashboardData.total_income - dashboardData.total_expenses) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {(dashboardData.total_income - dashboardData.total_expenses) >= 0 ? '+' : ''}{formatCurrency(dashboardData.total_income - dashboardData.total_expenses)}
                   </p>
                 </div>
               </div>

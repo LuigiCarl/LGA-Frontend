@@ -88,6 +88,7 @@ export interface Account {
   name: string;
   type: 'bank' | 'cash' | 'credit_card';
   balance: number;
+  initial_balance?: number; // Balance before any transactions (for editing)
   notes?: string;
   description?: string; // Alias for compatibility
   icon?: string; // For frontend display
@@ -367,8 +368,12 @@ export const accountsAPI = {
 
 // Categories
 export const categoriesAPI = {
-  getAll: async (): Promise<Category[]> => {
-    const response = await api.get('/categories');
+  getAll: async (options?: { excludeTransfer?: boolean }): Promise<Category[]> => {
+    const params = new URLSearchParams();
+    if (options?.excludeTransfer) {
+      params.append('exclude_transfer', 'true');
+    }
+    const response = await api.get(`/categories${params.toString() ? `?${params.toString()}` : ''}`);
     return response.data.categories || response.data;
   },
 

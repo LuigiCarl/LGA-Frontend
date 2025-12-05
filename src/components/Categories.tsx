@@ -115,12 +115,20 @@ export function Categories() {
     }
   };
 
+  // Check if a category is a system transfer category (cannot be edited/deleted)
+  const isTransferCategory = (name: string) => name === 'Transfer In' || name === 'Transfer Out';
+
+  // Filter out transfer categories from the display list
   const expenseCategories = useMemo(() => 
-    Array.isArray(categories) ? categories.filter((cat) => cat.type === "expense") : [], 
+    Array.isArray(categories) 
+      ? categories.filter((cat) => cat.type === "expense" && !isTransferCategory(cat.name)) 
+      : [], 
     [categories]
   );
   const incomeCategories = useMemo(() => 
-    Array.isArray(categories) ? categories.filter((cat) => cat.type === "income") : [],
+    Array.isArray(categories) 
+      ? categories.filter((cat) => cat.type === "income" && !isTransferCategory(cat.name)) 
+      : [],
     [categories]
   );
 
@@ -269,7 +277,6 @@ export function Categories() {
                 ))}
               </div>
             </div>
-
             {/* Income Categories */}
             <div>
               <h3 className="text-base text-[#0A0A0A] dark:text-white mb-4">Income Categories ({incomeCategories.length})</h3>

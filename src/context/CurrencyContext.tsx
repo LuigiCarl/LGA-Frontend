@@ -72,6 +72,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   ): string => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     const absAmount = Math.abs(numAmount);
+    const isNegative = numAmount < 0;
     
     // Use compact notation for large numbers if enabled
     const notation = useCompactNumbers && absAmount >= 1000 ? 'compact' : 'standard';
@@ -90,6 +91,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     if (showSign && type) {
       const sign = type === 'income' ? '+' : '-';
       return `${sign}${formatted}`;
+    }
+
+    // Preserve negative sign for negative amounts
+    if (isNegative) {
+      return `-${formatted}`;
     }
 
     return formatted;

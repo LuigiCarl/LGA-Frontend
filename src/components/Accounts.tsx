@@ -40,6 +40,7 @@ export function Accounts() {
       month_balance?: number;
       cumulative_balance?: number;
       account_existed?: boolean;
+      initial_balance?: number;
     }) => ({
       ...acc,
       icon: acc.type === 'bank' ? 'Building' : acc.type === 'cash' ? 'Wallet' : 'CreditCard',
@@ -49,6 +50,7 @@ export function Accounts() {
       monthBalance: acc.month_balance || 0,
       cumulativeBalance: acc.cumulative_balance !== undefined ? acc.cumulative_balance : parseFloat(String(acc.balance)),
       accountExisted: acc.account_existed !== undefined ? acc.account_existed : true,
+      initial_balance: acc.initial_balance,
     }));
   }, [accountsData]);
 
@@ -92,10 +94,15 @@ export function Accounts() {
   const handleOpenDialog = (account?: Account) => {
     if (account) {
       setEditingAccount(account);
+      // Use initial_balance when editing (balance before transactions)
+      // This ensures that when user saves, the system recalculates correctly
+      const balanceToShow = account.initial_balance !== undefined 
+        ? account.initial_balance 
+        : account.balance;
       setFormData({
         name: account.name,
         type: account.type,
-        balance: String(account.balance),
+        balance: String(balanceToShow),
         description: account.description || "",
         icon: account.icon || "Building",
       });
@@ -489,7 +496,7 @@ export function Accounts() {
               {/* Initial Balance */}
               <div>
                 <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                  {editingAccount ? "Balance" : "Initial Balance"} *
+                  Initial Balance *
                 </label>
                 <input
                   type="number"
@@ -500,6 +507,11 @@ export function Accounts() {
                   className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none"
                   required
                 />
+                {editingAccount && (
+                  <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">
+                    This is the starting balance before any transactions.
+                  </p>
+                )}
               </div>
 
               {/* Description */}

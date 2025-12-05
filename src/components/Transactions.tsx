@@ -540,7 +540,10 @@ export function Transactions() {
                   }}
                   className="w-full h-11 px-4 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent dark:border-white/10 rounded-[12px] text-[#0A0A0A] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]"
                 >
-                  {categories.map(category => (
+                  {categories
+                    .filter(category => category.name !== 'Transfer In' && category.name !== 'Transfer Out')
+                    .filter(category => category.type === editingTransaction.type)
+                    .map(category => (
                     <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
