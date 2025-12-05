@@ -430,8 +430,15 @@ export function Budgets() {
                         />
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#717182] dark:text-[#A1A1AA]">{percentage.toFixed(1)}% used</span>
-                        <span className="text-[#00A63E] dark:text-[#4ADE80]">{formatCurrency(remaining)} left</span>
+                        <span className={`${percentage > 100 ? 'text-[#D4183D] dark:text-[#F87171]' : 'text-[#717182] dark:text-[#A1A1AA]'}`}>
+                          {percentage.toFixed(1)}% used
+                        </span>
+                        <span className={remaining >= 0 ? 'text-[#00A63E] dark:text-[#4ADE80]' : 'text-[#D4183D] dark:text-[#F87171]'}>
+                          {remaining >= 0 
+                            ? `${formatCurrency(remaining)} left` 
+                            : `${formatCurrency(Math.abs(remaining))} overspent`
+                          }
+                        </span>
                       </div>
                     </div>
                   );
