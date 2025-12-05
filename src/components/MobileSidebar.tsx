@@ -60,7 +60,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 lg:hidden"
         onClick={onClose}
       />
@@ -149,7 +149,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
           <p className="px-3 mt-4 mb-2 text-xs font-medium text-[#717182] dark:text-[#A1A1AA] uppercase tracking-wider">
             Display
           </p>
-          
+
           {/* Currency Selector */}
           <div className="mb-1 px-3">
             <button
@@ -164,10 +164,14 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 <span className="text-sm text-[#0A0A0A] dark:text-white font-medium">
                   {CURRENCIES[currency].symbol} {currency}
                 </span>
-                <ChevronDown className={`w-4 h-4 text-[#717182] dark:text-[#A1A1AA] transition-transform ${showCurrencyDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-4 h-4 text-[#717182] dark:text-[#A1A1AA] transition-transform ${
+                    showCurrencyDropdown ? 'rotate-180' : ''
+                  }`}
+                />
               </div>
             </button>
-            
+
             {/* Currency Dropdown */}
             {showCurrencyDropdown && (
               <div className="mt-1 bg-[#F9FAFB] dark:bg-[#18181B] rounded-[10px] p-2 max-h-48 overflow-y-auto">
@@ -184,7 +188,13 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                         : 'hover:bg-[#ECECF0] dark:hover:bg-[#27272A]'
                     }`}
                   >
-                    <span className={`text-sm ${currency === code ? 'text-[#6366F1] dark:text-[#A78BFA] font-medium' : 'text-[#0A0A0A] dark:text-white'}`}>
+                    <span
+                      className={`text-sm ${
+                        currency === code
+                          ? 'text-[#6366F1] dark:text-[#A78BFA] font-medium'
+                          : 'text-[#0A0A0A] dark:text-white'
+                      }`}
+                    >
                       {CURRENCIES[code].symbol} {code}
                     </span>
                     <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">
@@ -195,7 +205,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               </div>
             )}
           </div>
-          
+
           {/* Compact Numbers Toggle */}
           <div className="mb-1 h-12 px-3 rounded-[10px] flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -246,20 +256,28 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                     {isInstalled ? (
                       <Check className="w-5 h-5 text-green-500" />
                     ) : (
-                      <Download className={`w-5 h-5 ${isInstalling ? 'animate-bounce' : ''} text-[#6366F1] dark:text-[#A78BFA]`} />
+                      <Download
+                        className={`w-5 h-5 ${
+                          isInstalling ? 'animate-bounce' : ''
+                        } text-[#6366F1] dark:text-[#A78BFA]`}
+                      />
                     )}
-                    <span className={`text-base ${
-                      isInstalled 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-[#0A0A0A] dark:text-white'
-                    }`}>
-                      {isInstalled ? 'App Installed' : isInstalling ? 'Installing...' : 'Install App'}
+                    <span
+                      className={`text-base ${
+                        isInstalled
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-[#0A0A0A] dark:text-white'
+                      }`}
+                    >
+                      {isInstalled
+                        ? 'App Installed'
+                        : isInstalling
+                        ? 'Installing...'
+                        : 'Install App'}
                     </span>
                   </div>
                   {!isInstalled && !isInstalling && (
-                    <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">
-                      Add to Home
-                    </span>
+                    <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">Add to Home</span>
                   )}
                 </button>
               </div>

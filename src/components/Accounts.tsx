@@ -36,6 +36,7 @@ export function Accounts() {
       month_expenses?: number; 
       month_transaction_count?: number;
       month_balance?: number;
+      cumulative_balance?: number;
       account_existed?: boolean;
     }) => ({
       ...acc,
@@ -44,6 +45,7 @@ export function Accounts() {
       monthExpenses: acc.month_expenses || 0,
       monthTransactionCount: acc.month_transaction_count || 0,
       monthBalance: acc.month_balance || 0,
+      cumulativeBalance: acc.cumulative_balance !== undefined ? acc.cumulative_balance : parseFloat(String(acc.balance)),
       accountExisted: acc.account_existed !== undefined ? acc.account_existed : true,
     }));
   }, [accountsData]);
@@ -173,20 +175,17 @@ export function Accounts() {
   };
 
   // Calculate total balance based on selected month
-  // Only include accounts that existed in that month, and sum their month_balance (income - expenses for that month)
+  // Uses cumulative_balance which includes: initial balance + all transactions up to end of month
   const totalBalance = useMemo(() => {
     if (!Array.isArray(accounts)) return 0;
     
-    // When viewing a specific month, sum the month_balance (which is already calculated by the backend)
-    // For accounts that didn't exist in that month, month_balance will be 0
     return accounts.reduce((sum, a) => {
       // If account_existed is false, don't count it
       if (a.accountExisted === false) return sum;
       
-      // Use month_balance if available (for month-specific view)
-      // month_balance = month_income - month_expenses for that specific month
-      if (a.monthBalance !== undefined) {
-        return sum + a.monthBalance;
+      // Use cumulativeBalance which is: initial balance + income - expenses up to end of month
+      if (a.cumulativeBalance !== undefined) {
+        return sum + a.cumulativeBalance;
       }
       
       // Fallback to current balance for non-filtered view

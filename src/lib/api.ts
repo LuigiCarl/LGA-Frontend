@@ -98,6 +98,7 @@ export interface Account {
   monthExpenses?: number;
   monthTransactionCount?: number;
   monthBalance?: number;
+  cumulativeBalance?: number; // Initial balance + all transactions up to end of month
   accountExisted?: boolean;
 }
 

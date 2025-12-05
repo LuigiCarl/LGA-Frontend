@@ -11,25 +11,28 @@ import { KeepAliveProvider } from './context/KeepAliveContext';
 import { ToastProvider } from './context/ToastContext';
 import { MonthProvider } from './context/MonthContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { PWAProvider } from './context/PWAContext';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
         <CurrencyProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <MonthProvider>
-                <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
-                  <EmojiProvider>
-                    <NotificationProvider>
-                      <RouterProvider router={router} />
-                    </NotificationProvider>
-                  </EmojiProvider>
-                </KeepAliveProvider>
-              </MonthProvider>
-            </AuthProvider>
-          </ToastProvider>
+          <PWAProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <MonthProvider>
+                  <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
+                    <EmojiProvider>
+                      <NotificationProvider>
+                        <RouterProvider router={router} />
+                      </NotificationProvider>
+                    </EmojiProvider>
+                  </KeepAliveProvider>
+                </MonthProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </PWAProvider>
         </CurrencyProvider>
       </DarkModeProvider>
       {/* Only show devtools in development */}

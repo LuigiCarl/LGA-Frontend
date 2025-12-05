@@ -44,12 +44,12 @@ export function usePWAInstall() {
     try {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         setIsInstalled(true);
         setIsInstallable(false);
       }
-      
+
       setDeferredPrompt(null);
       return outcome === 'accepted';
     } catch (error) {

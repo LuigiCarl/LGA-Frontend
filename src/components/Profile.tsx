@@ -1,9 +1,10 @@
-import { Wallet, Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X, Hash } from "lucide-react";
+import { Wallet, Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X, Hash, Download, Share } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useDarkMode } from "../context/DarkModeContext";
 import { useEmoji } from "../context/EmojiContext";
 import { useCurrency, CURRENCIES, CurrencyCode } from "../context/CurrencyContext";
+import { usePWA } from "../context/PWAContext";
 import { profileAPI, authAPI } from "../lib/api";
 import { useToast } from "../context/ToastContext";
 
@@ -12,11 +13,13 @@ export function Profile() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { emoji, setEmoji } = useEmoji();
   const { currency, setCurrency, useCompactNumbers, setUseCompactNumbers } = useCurrency();
+  const { isInstallable, isInstalled, isIOS, promptInstall } = usePWA();
   const toast = useToast();
   const navigate = useNavigate();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -468,6 +471,54 @@ export function Profile() {
             </button>
           </div>
 
+          {/* Install App - Always visible */}
+          <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6">
+            <h3 className="text-base text-[#0A0A0A] dark:text-white mb-4">Install App</h3>
+            {isInstalled ? (
+              <div className="flex items-center gap-3 text-[#10B981]">
+                <Download className="w-5 h-5" />
+                <span className="text-sm">App is already installed!</span>
+              </div>
+            ) : isIOS ? (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowInstallInstructions(true)}
+                  className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] flex items-center justify-center gap-2 shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                >
+                  <Share className="w-4 h-4" />
+                  <span>Add to Home Screen</span>
+                </button>
+                <p className="text-xs text-[#717182] dark:text-[#A1A1AA] text-center">
+                  Tap Share, then "Add to Home Screen"
+                </p>
+              </div>
+            ) : isInstallable ? (
+              <button
+                onClick={async () => {
+                  await promptInstall();
+                  toast.success("Follow the prompt to install the app");
+                }}
+                className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] flex items-center justify-center gap-2 shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+              >
+                <Download className="w-4 h-4" />
+                <span>Install App</span>
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowInstallInstructions(true)}
+                  className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] flex items-center justify-center gap-2 shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Install App</span>
+                </button>
+                <p className="text-xs text-[#717182] dark:text-[#A1A1AA] text-center">
+                  Install FinanEase for a better experience
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* About */}
           <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -692,6 +743,75 @@ export function Profile() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* Install Instructions Dialog */}
+          {showInstallInstructions && (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl text-[#0A0A0A] dark:text-white">Install FinanEase</h3>
+                  <button
+                    onClick={() => setShowInstallInstructions(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {isIOS ? (
+                    <>
+                      <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                        To install FinanEase on your iPhone or iPad:
+                      </p>
+                      <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                          <span>Tap the <strong>Share</strong> button <Share className="w-4 h-4 inline text-[#6366F1]" /> at the bottom of Safari</span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                          <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                          <span>Tap <strong>"Add"</strong> to confirm</span>
+                        </li>
+                      </ol>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                        To install FinanEase on your device:
+                      </p>
+                      <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                          <span>Click the <strong>Install</strong> icon in the address bar (or menu)</span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                          <span>Or click the <strong>three dots menu</strong> → <strong>"Install app"</strong></span>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                          <span>Click <strong>"Install"</strong> to confirm</span>
+                        </li>
+                      </ol>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setShowInstallInstructions(false)}
+                  className="w-full h-9 mt-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                >
+                  Got it
+                </button>
               </div>
             </div>
           )}
