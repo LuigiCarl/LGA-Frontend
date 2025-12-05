@@ -306,6 +306,30 @@ export const accountsAPI = {
     return response.data.account || response.data;
   },
 
+  getDetail: async (id: number, params?: { type?: 'income' | 'expense'; per_page?: number; page?: number }): Promise<{
+    account: Account;
+    transactions: {
+      data: Transaction[];
+      total: number;
+      current_page: number;
+      last_page: number;
+      per_page: number;
+    };
+    stats: {
+      initial_balance: number;
+      total_income: number;
+      total_expenses: number;
+      current_balance: number;
+    };
+  }> => {
+    const response = await api.get(`/accounts/${id}`, { params });
+    return {
+      account: response.data.account,
+      transactions: response.data.transactions,
+      stats: response.data.stats,
+    };
+  },
+
   create: async (data: Partial<Account>): Promise<Account> => {
     const response = await api.post('/accounts', data);
     return response.data.account || response.data;

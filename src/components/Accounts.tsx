@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
-import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon } from "lucide-react";
+import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { AccountDetail } from "./AccountDetail";
 import { useCurrency } from "../context/CurrencyContext";
 import { HeaderActions } from "./HeaderActions";
 import { AccountsSkeleton } from "./ui/ContentLoader";
@@ -52,6 +53,7 @@ export function Accounts() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     accountId: number | null;
@@ -292,31 +294,80 @@ export function Accounts() {
                   const didNotExist = account.accountExisted === false;
                   
                   return (
-                    <div key={account.name} className={`bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 ${didNotExist ? 'opacity-50' : ''}`}>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 rounded-full flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-[#6366F1] dark:text-[#A78BFA]" />
+                    <div 
+                      key={account.id} 
+                      className={`bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] overflow-hidden ${didNotExist ? 'opacity-50' : ''}`}
+                    >
+                      {/* Clickable Account Info */}
+                      <button
+                        onClick={() => !didNotExist && setSelectedAccount(account)}
+                        disabled={didNotExist}
+                        className="w-full p-4 text-left hover:bg-[#F9F9FB] dark:hover:bg-[#1F1F23] transition-colors disabled:cursor-not-allowed"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 rounded-full flex items-center justify-center">
+                              <Icon className="w-6 h-6 text-[#6366F1] dark:text-[#A78BFA]" />
+                            </div>
+                            <div>
+                              <h4 className="text-base text-[#0A0A0A] dark:text-white">{account.name}</h4>
+                              <p className="text-sm text-[#717182] dark:text-[#A1A1AA] capitalize">
+                                {account.type.replace('_', ' ')}
+                                {didNotExist && <span className="ml-2 text-xs text-amber-500">(Not created yet)</span>}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-base text-[#0A0A0A] dark:text-white">{account.name}</h4>
-                            <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
-                              {account.type}
-                              {didNotExist && <span className="ml-2 text-xs text-amber-500">(Not created yet)</span>}
+                          <div className="text-right">
+                            <p className="text-lg font-medium text-[#0A0A0A] dark:text-white">
+                              {didNotExist ? formatCurrency(0) : formatCurrency(account.cumulativeBalance ?? account.balance)}
                             </p>
+                            {!didNotExist && (
+                              <div className="flex items-center gap-2 mt-1 justify-end">
+                                <ChevronRight className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA]" />
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-lg text-[#0A0A0A] dark:text-white">
-                            {didNotExist ? formatCurrency(0) : formatCurrency(account.cumulativeBalance ?? account.balance)}
-                          </p>
-                          <button className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors" onClick={() => handleOpenDialog(account)}>
-                            <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
-                          </button>
-                          <button className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors" onClick={() => handleDelete(account.id)}>
-                            <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
-                          </button>
-                        </div>
+                        
+                        {/* Monthly Summary */}
+                        {!didNotExist && (account.monthIncome !== undefined || account.monthExpenses !== undefined) && (
+                          <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 grid grid-cols-2 gap-4">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4 text-[#22C55E]" />
+                              <div>
+                                <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Month Income</p>
+                                <p className="text-sm font-medium text-[#22C55E]">
+                                  +{formatCurrency(account.monthIncome || 0)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <TrendingDown className="w-4 h-4 text-[#EF4444]" />
+                              <div>
+                                <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Month Expenses</p>
+                                <p className="text-sm font-medium text-[#EF4444]">
+                                  -{formatCurrency(account.monthExpenses || 0)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-end gap-2 px-4 pb-3 pt-0">
+                        <button 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors" 
+                          onClick={(e) => { e.stopPropagation(); handleOpenDialog(account); }}
+                        >
+                          <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
+                        </button>
+                        <button 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors" 
+                          onClick={(e) => { e.stopPropagation(); handleDelete(account.id); }}
+                        >
+                          <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -455,6 +506,15 @@ export function Accounts() {
           title="Delete Account"
           message="Are you sure you want to delete this account? All transaction history will be permanently removed."
           itemName={deleteConfirmation.accountName}
+        />
+      )}
+
+      {/* Account Detail Modal */}
+      {selectedAccount && (
+        <AccountDetail
+          account={selectedAccount}
+          isOpen={!!selectedAccount}
+          onClose={() => setSelectedAccount(null)}
         />
       )}
     </>

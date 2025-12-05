@@ -258,6 +258,24 @@ export function useAccounts(params: AccountFilterParams = {}) {
   });
 }
 
+interface AccountDetailParams {
+  id: number;
+  type?: 'income' | 'expense';
+  page?: number;
+  per_page?: number;
+}
+
+export function useAccountDetail(params: AccountDetailParams) {
+  const { id, type, page = 1, per_page = 20 } = params;
+  return useQuery({
+    queryKey: [...queryKeys.accounts.detail(id), { type, page, per_page }],
+    queryFn: () => accountsAPI.getDetail(id, { type, page, per_page }),
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
+    enabled: !!id,
+  });
+}
+
 export function useCreateAccount() {
   return useMutation({
     mutationFn: (data: Partial<Account>) => accountsAPI.create(data),
