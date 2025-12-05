@@ -308,7 +308,7 @@ export function Accounts() {
                         </div>
                         <div className="flex items-center gap-3">
                           <p className="text-lg text-[#0A0A0A] dark:text-white">
-                            {didNotExist ? formatCurrency(0) : formatCurrency(account.monthBalance ?? account.balance)}
+                            {didNotExist ? formatCurrency(0) : formatCurrency(account.cumulativeBalance ?? account.balance)}
                           </p>
                           <button className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors" onClick={() => handleOpenDialog(account)}>
                             <Pencil className="w-4 h-4 text-[#0A0A0A] dark:text-white" />
