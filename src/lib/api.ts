@@ -343,6 +343,26 @@ export const accountsAPI = {
   delete: async (id: number): Promise<void> => {
     await api.delete(`/accounts/${id}`);
   },
+
+  transfer: async (data: {
+    from_account_id: number;
+    to_account_id: number;
+    amount: number;
+    description?: string;
+    date: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data?: {
+      from_account: Account;
+      to_account: Account;
+      expense_transaction: Transaction;
+      income_transaction: Transaction;
+    };
+  }> => {
+    const response = await api.post('/accounts/transfer', data);
+    return response.data;
+  },
 };
 
 // Categories

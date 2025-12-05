@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
+import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon, ChevronRight, TrendingUp, TrendingDown, ArrowLeftRight } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { AccountDetail } from "./AccountDetail";
+import { TransferModal } from "./TransferModal";
 import { useCurrency } from "../context/CurrencyContext";
 import { HeaderActions } from "./HeaderActions";
 import { AccountsSkeleton } from "./ui/ContentLoader";
@@ -52,6 +53,7 @@ export function Accounts() {
   }, [accountsData]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -195,6 +197,24 @@ export function Accounts() {
     }, 0);
   }, [accounts]);
 
+  // Calculate total monthly income across all accounts
+  const totalMonthlyIncome = useMemo(() => {
+    if (!Array.isArray(accounts)) return 0;
+    return accounts.reduce((sum, a) => {
+      if (a.accountExisted === false) return sum;
+      return sum + (a.monthIncome || 0);
+    }, 0);
+  }, [accounts]);
+
+  // Calculate total monthly expenses across all accounts
+  const totalMonthlyExpenses = useMemo(() => {
+    if (!Array.isArray(accounts)) return 0;
+    return accounts.reduce((sum, a) => {
+      if (a.accountExisted === false) return sum;
+      return sum + (a.monthExpenses || 0);
+    }, 0);
+  }, [accounts]);
+
   // Count only accounts that existed in the selected month
   const activeAccountCount = useMemo(() => {
     if (!Array.isArray(accounts)) return 0;
@@ -273,15 +293,53 @@ export function Accounts() {
           <div className="p-4 lg:p-8 pb-20 lg:pb-8 space-y-6">
             {/* Total Balance Card */}
             <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-6 shadow-sm">
-              <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA] mb-2">Monthly Balance</p>
-              <h3 className="text-3xl lg:text-4xl leading-10 mb-2 text-[#0A0A0A] dark:text-white">{formatCurrency(totalBalance)}</h3>
-              <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">{activeAccountCount} accounts</p>
+              <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA] mb-2">Total Balance</p>
+              <h3 className="text-3xl lg:text-4xl leading-10 mb-3 text-[#0A0A0A] dark:text-white">{formatCurrency(totalBalance)}</h3>
+              
+              {/* Monthly Income/Expense Breakdown */}
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#22C55E]/10 rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-[#22C55E]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Month Income</p>
+                    <p className="text-sm font-medium text-[#22C55E]">+{formatCurrency(totalMonthlyIncome)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#EF4444]/10 rounded-full flex items-center justify-center">
+                    <TrendingDown className="w-4 h-4 text-[#EF4444]" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">Month Expenses</p>
+                    <p className="text-sm font-medium text-[#EF4444]">-{formatCurrency(totalMonthlyExpenses)}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA] mt-3">{activeAccountCount} accounts</p>
             </div>
 
-            <button className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all" onClick={() => handleOpenDialog()}>
-              <Plus className="w-4 h-4" />
-              Add Account
-            </button>
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button 
+                className="flex-1 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all" 
+                onClick={() => handleOpenDialog()}
+              >
+                <Plus className="w-4 h-4" />
+                Add Account
+              </button>
+              {accounts.length >= 2 && (
+                <button 
+                  className="h-9 px-4 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 text-[#0A0A0A] dark:text-white text-sm rounded-[10px] flex items-center justify-center gap-2 hover:bg-[#F3F3F5] dark:hover:bg-[#3F3F46] transition-colors" 
+                  onClick={() => setIsTransferOpen(true)}
+                >
+                  <ArrowLeftRight className="w-4 h-4" />
+                  Transfer
+                </button>
+              )}
+            </div>
 
             {/* Accounts List */}
             <div>
@@ -517,6 +575,12 @@ export function Accounts() {
           onClose={() => setSelectedAccount(null)}
         />
       )}
+
+      {/* Transfer Modal */}
+      <TransferModal
+        isOpen={isTransferOpen}
+        onClose={() => setIsTransferOpen(false)}
+      />
     </>
   );
 }

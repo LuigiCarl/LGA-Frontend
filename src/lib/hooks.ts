@@ -37,7 +37,7 @@ export function useDashboardStats(params: DashboardStatsParams = {}) {
   return useQuery({
     queryKey: [...queryKeys.dashboard.stats(), { year, month }],
     queryFn: () => dashboardAPI.getStats(year, month),
-    staleTime: 5 * 1000, // Fresh for 5 seconds - fast updates
+    staleTime: 0, // Always refetch on invalidation for instant updates
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: true,
   });
@@ -47,7 +47,7 @@ export function useRecentTransactions(limit: number = 5, year?: number, month?: 
   return useQuery({
     queryKey: [...queryKeys.dashboard.recentTransactions(limit), { year, month }],
     queryFn: () => dashboardAPI.getRecentTransactions(limit, year, month),
-    staleTime: 5 * 1000, // Fresh for 5 seconds - fast updates
+    staleTime: 0, // Always refetch on invalidation for instant updates
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
@@ -253,7 +253,7 @@ export function useAccounts(params: AccountFilterParams = {}) {
   return useQuery({
     queryKey: [...queryKeys.accounts.list(), { year, month }],
     queryFn: () => accountsAPI.getAll(year && month ? { year, month } : undefined),
-    staleTime: 10 * 1000, // 10 seconds - account balances change with transactions
+    staleTime: 0, // Always refetch on invalidation for instant updates
     refetchOnWindowFocus: true,
   });
 }
@@ -300,6 +300,22 @@ export function useDeleteAccount() {
     mutationFn: (id: number) => accountsAPI.delete(id),
     onSuccess: () => {
       invalidateQueries.accounts();
+    },
+  });
+}
+
+export function useTransferBetweenAccounts() {
+  return useMutation({
+    mutationFn: (data: {
+      from_account_id: number;
+      to_account_id: number;
+      amount: number;
+      description?: string;
+      date: string;
+    }) => accountsAPI.transfer(data),
+    onSuccess: () => {
+      // Invalidate all relevant queries for instant updates
+      invalidateQueries.transactions();
     },
   });
 }
