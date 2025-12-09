@@ -3,7 +3,6 @@ import {
   TrendingUp,
   TrendingDown,
   Plus,
-  Loader2,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router';
@@ -14,6 +13,8 @@ import { useMonth } from '../context/MonthContext';
 import { useDashboardStats, useBudgets, useRecentTransactions } from '../lib/hooks';
 import { Budget, Transaction } from '../lib/api';
 import { DashboardSkeleton } from './ui/ContentLoader';
+import { StaggerContainer, StaggerItem } from './ui/motion';
+import { ProcessingOverlay, ProcessingContent } from './ui/ProcessingOverlay';
 
 export function Dashboard() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
@@ -104,13 +105,8 @@ export function Dashboard() {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Loading overlay when fetching data */}
-        {statsFetching && (
-          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
-            <Loader2 className="w-4 h-4 text-[#6366F1] animate-spin" />
-            <span className="text-sm text-[#6366F1]">Processing...</span>
-          </div>
-        )}
-        <div className={`p-4 lg:p-8 pb-20 lg:pb-8 space-y-6 transition-opacity duration-150 ${statsFetching ? 'opacity-70' : 'opacity-100'}`}>
+        <ProcessingOverlay isProcessing={statsFetching} />
+        <ProcessingContent isProcessing={statsFetching} className="p-4 lg:p-8 pb-20 lg:pb-8 space-y-6">
           {/* Balance Card & Chart */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Balance Card */}
@@ -263,7 +259,7 @@ export function Dashboard() {
               <h4 className="text-base leading-4 text-[#0A0A0A] dark:text-white mb-6">
                 Budget Overview
               </h4>
-              <div className="space-y-4">
+              <StaggerContainer className="space-y-4">
                 {Array.isArray(budgets) && budgets.length > 0 ? (
                   budgets.slice(0, 4).map((budget) => {
                     // Use spent from budget data (calculated by backend for selected month)
@@ -284,7 +280,7 @@ export function Dashboard() {
                       : (budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0);
 
                     return (
-                      <div key={budget.id} className="space-y-2">
+                      <StaggerItem key={budget.id} className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-[#0A0A0A] dark:text-white">
                             {budget.category_name || budget.category?.name || 'Unknown'}
@@ -305,7 +301,7 @@ export function Dashboard() {
                             style={{ width: `${Math.min(percentage, 100)}%` }}
                           />
                         </div>
-                      </div>
+                      </StaggerItem>
                     );
                   })
                 ) : (
@@ -320,7 +316,7 @@ export function Dashboard() {
                     </Link>
                   </div>
                 )}
-              </div>
+              </StaggerContainer>
               {budgets.length > 0 && (
                 <Link
                   to="/dashboard/budgets"
@@ -336,10 +332,10 @@ export function Dashboard() {
               <h4 className="text-base leading-4 text-[#0A0A0A] dark:text-white mb-6">
                 Category Breakdown
               </h4>
-              <div className="space-y-3">
+              <StaggerContainer className="space-y-3">
                 {dashboardData.category_spending.length > 0 ? (
                   dashboardData.category_spending.slice(0, 5).map((category, index) => (
-                    <div
+                    <StaggerItem
                       key={`${category.name}-${index}`}
                       className="flex items-center justify-between"
                     >
@@ -355,7 +351,7 @@ export function Dashboard() {
                       <span className="text-sm text-[#717182] dark:text-[#A1A1AA]">
                         {formatCurrency(category.value)}
                       </span>
-                    </div>
+                    </StaggerItem>
                   ))
                 ) : (
                   <div className="text-center py-4">
@@ -371,7 +367,7 @@ export function Dashboard() {
                     </Link>
                   </div>
                 )}
-              </div>
+              </StaggerContainer>
               {dashboardData.category_spending.length > 5 && (
                 <Link
                   to="/dashboard/categories"
@@ -396,7 +392,7 @@ export function Dashboard() {
                 View all
               </Link>
             </div>
-            <div className="grid gap-3 lg:grid-cols-2">
+            <StaggerContainer className="grid gap-3 lg:grid-cols-2">
               {recentTransactions.length > 0 ? (
                 recentTransactions.map((transaction) => {
                   const categoryColor = transaction.category?.color || '#6366F1';
@@ -409,7 +405,7 @@ export function Dashboard() {
                   });
 
                   return (
-                    <div
+                    <StaggerItem
                       key={transaction.id}
                       className="bg-[#F9FAFB] dark:bg-[#27272A] rounded-[10px] p-3 flex justify-between items-center"
                     >
@@ -445,7 +441,7 @@ export function Dashboard() {
                           transaction.type
                         )}
                       </span>
-                    </div>
+                    </StaggerItem>
                   );
                 })
               ) : (
@@ -462,9 +458,9 @@ export function Dashboard() {
                   </Link>
                 </div>
               )}
-            </div>
+            </StaggerContainer>
           </div>
-        </div>
+        </ProcessingContent>
       </div>
     </div>
   );

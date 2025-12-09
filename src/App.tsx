@@ -12,11 +12,13 @@ import { ToastProvider } from './context/ToastContext';
 import { MonthProvider } from './context/MonthContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 import { PWAProvider } from './context/PWAContext';
+import { ReducedMotionProvider } from './components/ui/motion';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <DarkModeProvider>
+      <ReducedMotionProvider>
+        <DarkModeProvider>
         <CurrencyProvider>
           <PWAProvider>
             <ToastProvider>
@@ -35,6 +37,7 @@ function App() {
           </PWAProvider>
         </CurrencyProvider>
       </DarkModeProvider>
+      </ReducedMotionProvider>
       {/* Only show devtools in development */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

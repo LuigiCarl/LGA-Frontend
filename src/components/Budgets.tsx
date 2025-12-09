@@ -17,6 +17,8 @@ import {
 } from "../lib/hooks";
 import { useToast } from "../context/ToastContext";
 import { PageSkeleton } from "./ui/ContentLoader";
+import { StaggerContainer, StaggerItem, AnimatePresence, motion, modalVariants, overlayVariants, useMotionSafe } from "./ui/motion";
+import { ProcessingOverlay, ProcessingContent } from "./ui/ProcessingOverlay";
 
 export function Budgets() {
   // Get month from shared context
@@ -24,8 +26,8 @@ export function Budgets() {
   const { formatCurrency } = useCurrency();
 
   // React Query hooks - data is cached and shared
-  const { data: budgetsData, isLoading: budgetsLoading } = useBudgets({ year, month });
-  const { data: budgetProgress } = useBudgetProgress();
+  const { data: budgetsData, isLoading: budgetsLoading, isFetching: budgetsFetching } = useBudgets({ year, month });
+  const { data: budgetProgress, isFetching: progressFetching } = useBudgetProgress();
   const { data: categoriesData } = useCategories();
   const toast = useToast();
   
@@ -349,6 +351,10 @@ export function Budgets() {
     );
   }
 
+  // Calculate combined fetching state for when month changes
+  const isFetching = budgetsFetching || progressFetching;
+  const shouldAnimate = useMotionSafe();
+
   return (
     <>
       <div className="flex flex-col h-full">
@@ -357,7 +363,9 @@ export function Budgets() {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-8 pb-20 lg:pb-8 space-y-6">
+          {/* Loading overlay when fetching data */}
+          <ProcessingOverlay isProcessing={isFetching} />
+          <ProcessingContent isProcessing={isFetching} className="p-4 lg:p-8 pb-20 lg:pb-8 space-y-6">
             {/* Total Budget Card */}
             <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-6">
               <div className="flex justify-between items-start mb-4">
@@ -387,7 +395,7 @@ export function Budgets() {
             {/* Category Budgets */}
             <div>
               <h3 className="text-base text-[#0A0A0A] dark:text-white mb-4">Category Budgets</h3>
-              <div className="space-y-4">
+              <StaggerContainer className="space-y-4">
                 {Array.isArray(budgets) && budgets.map((budget) => {
                   const budgetAmount = typeof budget.amount === 'number' ? budget.amount : parseFloat(String(budget.amount));
                   const spentAmount = budget.spent || 0;
@@ -397,7 +405,7 @@ export function Budgets() {
                   const categoryColor = budget.category_color || budget.category?.color || '#6366F1';
 
                   return (
-                    <div key={budget.id} className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6">
+                    <StaggerItem key={budget.id} className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6">
                       <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-3">
                           <div
@@ -445,20 +453,37 @@ export function Budgets() {
                           }
                         </span>
                       </div>
-                    </div>
+                    </StaggerItem>
                   );
                 })}
-              </div>
+              </StaggerContainer>
             </div>
-          </div>
+          </ProcessingContent>
         </div>
       </div>
 
       {/* Dialog for Adding/Editing Budget */}
-      {isDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 w-full max-w-md shadow-xl">
-            <div className="flex justify-between items-center mb-6">
+      <AnimatePresence>
+        {isDialogOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={overlayVariants}
+              onClick={handleCloseDialog}
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+              <motion.div
+                className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 w-full max-w-md shadow-xl pointer-events-auto"
+                initial={shouldAnimate ? "hidden" : false}
+                animate="visible"
+                exit="exit"
+                variants={modalVariants}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-6">
               <h3 className="text-base text-[#0A0A0A] dark:text-white">
                 {editingBudget ? "Edit Budget" : "Add New Budget"}
               </h3>
@@ -663,9 +688,11 @@ export function Budgets() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal

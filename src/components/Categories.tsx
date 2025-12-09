@@ -11,11 +11,15 @@ import {
   useDeleteCategory 
 } from "../lib/hooks";
 import { useToast } from "../context/ToastContext";
+import { StaggerContainer, StaggerItem, AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe } from "./ui/motion";
 
 export function Categories() {
   // React Query hooks - data is cached and shared
   const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
   const toast = useToast();
+  
+  // Animation control
+  const shouldAnimate = useMotionSafe();
   
   // Mutations
   const createMutation = useCreateCategory();
@@ -218,9 +222,9 @@ export function Categories() {
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 lg:p-8 pb-20 lg:pb-8 space-y-6">
             {/* Categories Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Total Categories Card */}
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+              <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Total Categories</p>
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
@@ -229,10 +233,10 @@ export function Categories() {
                 </div>
                 <p className="text-2xl lg:text-3xl text-[#0A0A0A] dark:text-white">{categories.length}</p>
                 <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">categories</p>
-              </div>
+              </StaggerItem>
 
               {/* Expense Categories Card */}
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+              <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Expense</p>
                   <div className="w-8 h-8 rounded-lg bg-[#FFE5E5] dark:bg-[#3F1F1F] flex items-center justify-center">
@@ -241,10 +245,10 @@ export function Categories() {
                 </div>
                 <p className="text-2xl lg:text-3xl text-[#0A0A0A] dark:text-white">{expenseCategories.length}</p>
                 <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">categories</p>
-              </div>
+              </StaggerItem>
 
               {/* Income Categories Card */}
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+              <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Income</p>
                   <div className="w-8 h-8 rounded-lg bg-[#E5F9E5] dark:bg-[#1F3F1F] flex items-center justify-center">
@@ -253,8 +257,8 @@ export function Categories() {
                 </div>
                 <p className="text-2xl lg:text-3xl text-[#0A0A0A] dark:text-white">{incomeCategories.length}</p>
                 <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">categories</p>
-              </div>
-            </div>
+              </StaggerItem>
+            </StaggerContainer>
 
             {/* Add Category Button */}
             <button
@@ -268,9 +272,9 @@ export function Categories() {
             {/* Expense Categories */}
             <div>
               <h3 className="text-base text-[#0A0A0A] dark:text-white mb-4">Expense Categories ({expenseCategories.length})</h3>
-              <div className="space-y-3">
+              <StaggerContainer className="space-y-3">
                 {expenseCategories.map((category) => (
-                  <div
+                  <StaggerItem
                     key={category.id}
                     className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 flex justify-between items-center"
                   >
@@ -300,16 +304,16 @@ export function Categories() {
                         <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
                       </button>
                     </div>
-                  </div>
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             </div>
             {/* Income Categories */}
             <div>
               <h3 className="text-base text-[#0A0A0A] dark:text-white mb-4">Income Categories ({incomeCategories.length})</h3>
-              <div className="space-y-3">
+              <StaggerContainer className="space-y-3">
                 {incomeCategories.map((category) => (
-                  <div
+                  <StaggerItem
                     key={category.id}
                     className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 flex justify-between items-center"
                   >
@@ -339,19 +343,36 @@ export function Categories() {
                         <Trash2 className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
                       </button>
                     </div>
-                  </div>
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerContainer>
             </div>
           </div>
         </div>
 
         {/* Dialog/Modal */}
-        {isDialogOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-sm lg:max-w-md p-6 max-h-[90vh] overflow-y-auto">
-              {/* Dialog Header */}
-              <div className="flex justify-between items-center mb-6">
+        <AnimatePresence>
+          {isDialogOpen && (
+            <>
+              <motion.div
+                className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                initial={shouldAnimate ? "hidden" : false}
+                animate="visible"
+                exit="exit"
+                variants={overlayVariants}
+                onClick={handleCloseDialog}
+              />
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                <motion.div
+                  className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-sm lg:max-w-md p-6 max-h-[90vh] overflow-y-auto pointer-events-auto"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={modalVariants}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Dialog Header */}
+                  <div className="flex justify-between items-center mb-6">
                 <h3 className="text-base text-[#0A0A0A] dark:text-white">
                   {editingCategory ? "Edit Category" : "Add New Category"}
                 </h3>
@@ -466,9 +487,11 @@ export function Categories() {
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
+                </motion.div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal

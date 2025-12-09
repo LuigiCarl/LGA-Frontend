@@ -5,6 +5,7 @@ import { useAccounts, useTransferBetweenAccounts } from "../lib/hooks";
 import { useMonth } from "../context/MonthContext";
 import { useToast } from "../context/ToastContext";
 import { Account } from "../lib/api";
+import { motion, AnimatePresence, modalVariants, overlayVariants, useMotionSafe } from "./ui/motion";
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -92,13 +93,30 @@ export function TransferModal({ isOpen, onClose }: TransferModalProps) {
 
   const fromAccount = accounts.find(a => a.id === parseInt(formData.from_account_id));
   const toAccount = accounts.find(a => a.id === parseInt(formData.to_account_id));
-
-  if (!isOpen) return null;
+  const shouldAnimate = useMotionSafe();
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 w-full max-w-md shadow-xl">
-        <div className="flex justify-between items-center mb-6">
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+            initial={shouldAnimate ? "hidden" : false}
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
+            onClick={handleClose}
+          />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <motion.div
+              className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 w-full max-w-md shadow-xl pointer-events-auto"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-medium text-[#0A0A0A] dark:text-white">
             Transfer Between Accounts
           </h3>
@@ -293,7 +311,10 @@ export function TransferModal({ isOpen, onClose }: TransferModalProps) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

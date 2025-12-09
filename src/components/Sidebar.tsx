@@ -17,6 +17,7 @@ import { PreloadLink } from './PreloadLink';
 import { useAuth } from '../context/AuthContext';
 import { useEmoji } from '../context/EmojiContext';
 import { LoadingButton } from './ui/loading-button';
+import { AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe } from './ui/motion';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -28,6 +29,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
   const { emoji } = useEmoji();
+  
+  // Animation control
+  const shouldAnimate = useMotionSafe();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -177,36 +181,55 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Sign Out Dialog */}
-      {showSignOutDialog && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
-            <div className="mb-6">
-              <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
-              <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
-                Are you sure you want to sign out of your account?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSignOutDialog(false)}
-                disabled={isSigningOut}
-                className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      <AnimatePresence>
+        {showSignOutDialog && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={overlayVariants}
+              onClick={() => setShowSignOutDialog(false)}
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+              <motion.div
+                className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl pointer-events-auto"
+                initial={shouldAnimate ? "hidden" : false}
+                animate="visible"
+                exit="exit"
+                variants={modalVariants}
+                onClick={(e) => e.stopPropagation()}
               >
-                Cancel
-              </button>
-              <LoadingButton
-                onClick={confirmSignOut}
-                isLoading={isSigningOut}
-                loadingText="Signing out..."
-                className="flex-1"
-                size="sm"
-              >
-                Sign Out
-              </LoadingButton>
+                <div className="mb-6">
+                  <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
+                  <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                    Are you sure you want to sign out of your account?
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowSignOutDialog(false)}
+                    disabled={isSigningOut}
+                    className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <LoadingButton
+                    onClick={confirmSignOut}
+                    isLoading={isSigningOut}
+                    loadingText="Signing out..."
+                    className="flex-1"
+                    size="sm"
+                  >
+                    Sign Out
+                  </LoadingButton>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useCurrency, CURRENCIES, CurrencyCode } from "../context/CurrencyContex
 import { usePWA } from "../context/PWAContext";
 import { profileAPI, authAPI } from "../lib/api";
 import { useToast } from "../context/ToastContext";
+import { AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe } from "./ui/motion";
 
 
 export function Profile() {
@@ -16,6 +17,10 @@ export function Profile() {
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWA();
   const toast = useToast();
   const navigate = useNavigate();
+  
+  // Animation control
+  const shouldAnimate = useMotionSafe();
+  
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -543,101 +548,156 @@ export function Profile() {
           </button>
 
           {/* Sign Out Dialog */}
-          {showSignOutDialog && (
-            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
-                <div className="mb-6">
-                  <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
-                  <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Are you sure you want to sign out of your account?</p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowSignOutDialog(false)}
-                    className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors"
+          <AnimatePresence>
+            {showSignOutDialog && (
+              <>
+                <motion.div
+                  className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
+                  onClick={() => setShowSignOutDialog(false)}
+                />
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                  <motion.div
+                    className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl pointer-events-auto"
+                    initial={shouldAnimate ? "hidden" : false}
+                    animate="visible"
+                    exit="exit"
+                    variants={modalVariants}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmSignOut}
-                    className="flex-1 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
-                  >
-                    Sign Out
-                  </button>
+                    <div className="mb-6">
+                      <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
+                      <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Are you sure you want to sign out of your account?</p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowSignOutDialog(false)}
+                        className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmSignOut}
+                        className="flex-1 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
-          )}
+              </>
+            )}
+          </AnimatePresence>
 
           {/* Emoticon Picker Dialog */}
-          {showEmoticonPicker && (
-            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl text-[#0A0A0A] dark:text-white">Choose Avatar</h3>
-                  <button
-                    onClick={() => setShowEmoticonPicker(false)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
-                  </button>
-                </div>
-
-                {/* Category Tabs */}
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                  {(["smileys", "animals", "food", "activities", "travel", "objects", "symbols"] as const).map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setEmoticonCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
-                        emoticonCategory === cat
-                          ? "bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-sm"
-                          : "bg-[#F3F3F5] dark:bg-[#27272A] text-[#717182] dark:text-[#A1A1AA] hover:bg-[#ECECF0] dark:hover:bg-[#18181B]"
-                      }`}
-                    >
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Emoticon Grid */}
-                <div className="grid grid-cols-7 gap-2 max-h-[280px] overflow-y-auto mb-6 p-2">
-                  {emoticons[emoticonCategory].map((emoticon) => (
-                    <button
-                      key={emoticon}
-                      onClick={() => {
-                        setEmoji(emoticon);
-                        setShowEmoticonPicker(false);
-                        toast.success("Avatar updated successfully!");
-                      }}
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
-                        emoji === emoticon
-                          ? "bg-gradient-to-br from-[#6366F1]/20 to-[#8B5CF6]/20 dark:from-[#6366F1]/30 dark:to-[#8B5CF6]/30 ring-2 ring-[#6366F1] dark:ring-[#8B5CF6]"
-                          : "hover:bg-[#F3F3F5] dark:hover:bg-[#27272A]"
-                      }`}
-                    >
-                      {emoticon}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Close Button */}
-                <button
+          <AnimatePresence>
+            {showEmoticonPicker && (
+              <>
+                <motion.div
+                  className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
                   onClick={() => setShowEmoticonPicker(false)}
-                  className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          )}
+                />
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                  <motion.div
+                    className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl pointer-events-auto"
+                    initial={shouldAnimate ? "hidden" : false}
+                    animate="visible"
+                    exit="exit"
+                    variants={modalVariants}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl text-[#0A0A0A] dark:text-white">Choose Avatar</h3>
+                      <button
+                        onClick={() => setShowEmoticonPicker(false)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                        aria-label="Close"
+                      >
+                        <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
+                      </button>
+                    </div>
+
+                    {/* Category Tabs */}
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                      {(["smileys", "animals", "food", "activities", "travel", "objects", "symbols"] as const).map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setEmoticonCategory(cat)}
+                          className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
+                            emoticonCategory === cat
+                              ? "bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-sm"
+                              : "bg-[#F3F3F5] dark:bg-[#27272A] text-[#717182] dark:text-[#A1A1AA] hover:bg-[#ECECF0] dark:hover:bg-[#18181B]"
+                          }`}
+                        >
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Emoticon Grid */}
+                    <div className="grid grid-cols-7 gap-2 max-h-[280px] overflow-y-auto mb-6 p-2">
+                      {emoticons[emoticonCategory].map((emoticon) => (
+                        <button
+                          key={emoticon}
+                          onClick={() => {
+                            setEmoji(emoticon);
+                            setShowEmoticonPicker(false);
+                            toast.success("Avatar updated successfully!");
+                          }}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
+                            emoji === emoticon
+                              ? "bg-gradient-to-br from-[#6366F1]/20 to-[#8B5CF6]/20 dark:from-[#6366F1]/30 dark:to-[#8B5CF6]/30 ring-2 ring-[#6366F1] dark:ring-[#8B5CF6]"
+                              : "hover:bg-[#F3F3F5] dark:hover:bg-[#27272A]"
+                          }`}
+                        >
+                          {emoticon}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setShowEmoticonPicker(false)}
+                      className="w-full h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                    >
+                      Done
+                    </button>
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>
 
           {/* Password Dialog */}
-          {showPasswordDialog && (
-            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
-                <div className="mb-6">
-                  <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Change Password</h3>
+          <AnimatePresence>
+            {showPasswordDialog && (
+              <>
+                <motion.div
+                  className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
+                  onClick={handlePasswordDialogClose}
+                />
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                  <motion.div
+                    className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl pointer-events-auto"
+                    initial={shouldAnimate ? "hidden" : false}
+                    animate="visible"
+                    exit="exit"
+                    variants={modalVariants}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="mb-6">
+                      <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Change Password</h3>
                   <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Enter your current and new password to update your account.</p>
                 </div>
                 <form onSubmit={handlePasswordSubmit}>
@@ -745,78 +805,99 @@ export function Profile() {
                     </button>
                   </div>
                 </form>
-              </div>
-            </div>
-          )}
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>
 
           {/* Install Instructions Dialog */}
-          {showInstallInstructions && (
-            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl text-[#0A0A0A] dark:text-white">Install FinanEase</h3>
-                  <button
-                    onClick={() => setShowInstallInstructions(false)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {isIOS ? (
-                    <>
-                      <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
-                        To install FinanEase on your iPhone or iPad:
-                      </p>
-                      <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
-                          <span>Tap the <strong>Share</strong> button <Share className="w-4 h-4 inline text-[#6366F1]" /> at the bottom of Safari</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
-                          <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
-                          <span>Tap <strong>"Add"</strong> to confirm</span>
-                        </li>
-                      </ol>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
-                        To install FinanEase on your device:
-                      </p>
-                      <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
-                          <span>Click the <strong>Install</strong> icon in the address bar (or menu)</span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
-                          <span>Or click the <strong>three dots menu</strong> → <strong>"Install app"</strong></span>
-                        </li>
-                        <li className="flex items-start gap-3">
-                          <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
-                          <span>Click <strong>"Install"</strong> to confirm</span>
-                        </li>
-                      </ol>
-                    </>
-                  )}
-                </div>
-
-                <button
+          <AnimatePresence>
+            {showInstallInstructions && (
+              <>
+                <motion.div
+                  className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
                   onClick={() => setShowInstallInstructions(false)}
-                  className="w-full h-9 mt-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
-                >
-                  Got it
-                </button>
-              </div>
-            </div>
-          )}
+                />
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                  <motion.div
+                    className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-md w-full shadow-xl pointer-events-auto"
+                    initial={shouldAnimate ? "hidden" : false}
+                    animate="visible"
+                    exit="exit"
+                    variants={modalVariants}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl text-[#0A0A0A] dark:text-white">Install FinanEase</h3>
+                      <button
+                        onClick={() => setShowInstallInstructions(false)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                        aria-label="Close"
+                      >
+                        <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {isIOS ? (
+                        <>
+                          <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                            To install FinanEase on your iPhone or iPad:
+                          </p>
+                          <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                              <span>Tap the <strong>Share</strong> button <Share className="w-4 h-4 inline text-[#6366F1]" /> at the bottom of Safari</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                              <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                              <span>Tap <strong>"Add"</strong> to confirm</span>
+                            </li>
+                          </ol>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                            To install FinanEase on your device:
+                          </p>
+                          <ol className="space-y-3 text-sm text-[#0A0A0A] dark:text-white">
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                              <span>Click the <strong>Install</strong> icon in the address bar (or menu)</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                              <span>Or click the <strong>three dots menu</strong> → <strong>"Install app"</strong></span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                              <span className="w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                              <span>Click <strong>"Install"</strong> to confirm</span>
+                            </li>
+                          </ol>
+                        </>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => setShowInstallInstructions(false)}
+                      className="w-full h-9 mt-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                    >
+                      Got it
+                    </button>
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ import { useEmoji } from '../context/EmojiContext';
 import { useCurrency, CURRENCIES, CurrencyCode } from '../context/CurrencyContext';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { LoadingButton } from './ui/loading-button';
+import { motion, AnimatePresence, useMotionSafe } from './ui/motion';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -61,23 +62,35 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
     onClose();
   };
 
-  if (!isOpen) return null;
+  const shouldAnimate = useMotionSafe();
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 lg:hidden"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 lg:hidden"
+            initial={shouldAnimate ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+          />
 
-      {/* Sidebar Panel */}
-      <div className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#09090B] z-50 lg:hidden transform transition-transform duration-300 ease-out flex flex-col shadow-2xl">
-        {/* Header with Logo and Close Button */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-black/10 dark:border-white/10">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/icon.png" 
+          {/* Sidebar Panel */}
+          <motion.div
+            className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#09090B] z-50 lg:hidden flex flex-col shadow-2xl"
+            initial={shouldAnimate ? { x: "-100%" } : false}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            {/* Header with Logo and Close Button */}
+            <div className="h-16 flex items-center justify-between px-4 border-b border-black/10 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/icon.png" 
               alt="FinanEase Logo" 
               className="w-12 h-12 object-contain"
             />
@@ -317,38 +330,51 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             FinanEase • Version 1.0
           </p>
         </div>
-      </div>
+          </motion.div>
 
-      {/* Sign Out Dialog */}
-      {showSignOutDialog && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-sm w-full shadow-xl">
-            <div className="mb-6">
-              <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
-              <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
-                Are you sure you want to sign out of your account?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowSignOutDialog(false)}
-                disabled={isSigningOut}
-                className="flex-1 h-11 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-[10px] text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* Sign Out Dialog */}
+          {showSignOutDialog && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[60] p-4"
+              initial={shouldAnimate ? { opacity: 0 } : false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 max-w-sm w-full shadow-xl"
+                initial={shouldAnimate ? { scale: 0.95, opacity: 0 } : false}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-                Cancel
-              </button>
-              <LoadingButton
-                onClick={confirmSignOut}
-                isLoading={isSigningOut}
-                loadingText="Signing out..."
-                className="flex-1"
-              >
-                Sign Out
-              </LoadingButton>
-            </div>
-          </div>
-        </div>
+                <div className="mb-6">
+                  <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Sign Out</h3>
+                  <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                    Are you sure you want to sign out of your account?
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowSignOutDialog(false)}
+                    disabled={isSigningOut}
+                    className="flex-1 h-11 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-[10px] text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <LoadingButton
+                    onClick={confirmSignOut}
+                    isLoading={isSigningOut}
+                    loadingText="Signing out..."
+                    className="flex-1"
+                  >
+                    Sign Out
+                  </LoadingButton>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </>
       )}
-    </>
+    </AnimatePresence>
   );
 }

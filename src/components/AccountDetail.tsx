@@ -18,6 +18,7 @@ import {
 import { useCurrency } from "../context/CurrencyContext";
 import { useAccountDetail } from "../lib/hooks";
 import { Account, Transaction } from "../lib/api";
+import { motion, AnimatePresence, modalVariants, overlayVariants, useMotionSafe, StaggerContainer, StaggerItem } from "./ui/motion";
 
 interface AccountDetailProps {
   account: Account;
@@ -56,6 +57,7 @@ export function AccountDetail({ account, isOpen, onClose }: AccountDetailProps) 
   const transactions = data?.transactions?.data || [];
   const totalPages = data?.transactions?.last_page || 1;
   const currentPage = data?.transactions?.current_page || 1;
+  const shouldAnimate = useMotionSafe();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -77,8 +79,26 @@ export function AccountDetail({ account, isOpen, onClose }: AccountDetailProps) 
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+            initial={shouldAnimate ? "hidden" : false}
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
+            onClick={onClose}
+          />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <motion.div
+              className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl overflow-hidden pointer-events-auto"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
         {/* Header */}
         <div className="flex-shrink-0 border-b border-black/10 dark:border-white/10 p-4">
           <div className="flex items-center justify-between mb-4">
@@ -193,13 +213,13 @@ export function AccountDetail({ account, isOpen, onClose }: AccountDetailProps) 
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <StaggerContainer className="space-y-2">
               {transactions.map((transaction: Transaction) => {
                 const isExpanded = expandedId === transaction.id;
                 const isIncome = transaction.type === 'income';
                 
                 return (
-                  <div
+                  <StaggerItem
                     key={transaction.id}
                     className="bg-[#F3F3F5] dark:bg-[#27272A] rounded-xl overflow-hidden transition-all"
                   >
@@ -293,10 +313,10 @@ export function AccountDetail({ account, isOpen, onClose }: AccountDetailProps) 
                         </div>
                       </div>
                     )}
-                  </div>
+                  </StaggerItem>
                 );
               })}
-            </div>
+            </StaggerContainer>
           )}
         </div>
 
@@ -326,7 +346,10 @@ export function AccountDetail({ account, isOpen, onClose }: AccountDetailProps) 
             </div>
           </div>
         )}
-      </div>
-    </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

@@ -5,6 +5,7 @@ import { useCreateTransaction } from "../lib/hooks";
 import { invalidateQueries } from "../lib/queryClient";
 import { useToast } from "../context/ToastContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { motion, AnimatePresence, modalVariants, overlayVariants, useMotionSafe } from "./ui/motion";
 
 // interface Transaction {
 //   id: number;
@@ -366,12 +367,30 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
     onClose();
   };
 
-  if (!isOpen) return null;
+  const shouldAnimate = useMotionSafe();
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[12px] lg:rounded-[14px] p-4 lg:p-6 w-full max-w-md lg:max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
-        <div className="flex items-center justify-between mb-6 lg:mb-8">
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+            initial={shouldAnimate ? "hidden" : false}
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
+            onClick={handleClose}
+          />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <motion.div
+              className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[12px] lg:rounded-[14px] p-4 lg:p-6 w-full max-w-md lg:max-w-lg max-h-[90vh] overflow-y-auto shadow-xl pointer-events-auto"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={modalVariants}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6 lg:mb-8">
           <h3 className="text-sm lg:text-base leading-4 text-[#0A0A0A] dark:text-white">
             Add New Transaction
           </h3>
@@ -784,7 +803,10 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
             {createMutation.isPending ? 'Adding...' : 'Add Transaction'}
           </button>
         </form>
-      </div>
-    </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

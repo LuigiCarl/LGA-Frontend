@@ -18,12 +18,17 @@ import {
 } from "../lib/hooks";
 import { invalidateQueries } from "../lib/queryClient";
 import { TransactionsSkeleton } from "./ui/ContentLoader";
+import { StaggerContainer, StaggerItem, AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe } from "./ui/motion";
+import { ProcessingOverlay, ProcessingContent } from "./ui/ProcessingOverlay";
 
 export function Transactions() {
   // Get month from shared context
   const { year, month } = useMonth();
   const { formatCurrency } = useCurrency();
   const toast = useToast();
+  
+  // Animation control
+  const shouldAnimate = useMotionSafe();
 
   // Filter state
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +61,8 @@ export function Transactions() {
   }, [currentPage, transactionsPerPage, filterType, selectedCategory, selectedAccount, year, month]);
 
   // React Query hooks - data is cached and shared
-  const { data: transactionsData, isLoading: transactionsLoading } = useTransactions(queryParams);
-  const { data: statsData } = useDashboardStats({ year, month });
+  const { data: transactionsData, isLoading: transactionsLoading, isFetching: transactionsFetching } = useTransactions(queryParams);
+  const { data: statsData, isFetching: statsFetching } = useDashboardStats({ year, month });
   const { data: categoriesData } = useCategories();
   const { data: accountsData } = useAccounts();
 
@@ -168,6 +173,9 @@ export function Transactions() {
     );
   }
 
+  // Calculate combined fetching state for when month changes
+  const isFetching = transactionsFetching || statsFetching;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header - Fixed */}
@@ -175,10 +183,12 @@ export function Transactions() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 lg:p-8 pb-20 lg:pb-8">
+        {/* Loading overlay when fetching data */}
+        <ProcessingOverlay isProcessing={isFetching} />
+        <ProcessingContent isProcessing={isFetching} className="p-4 lg:p-8 pb-20 lg:pb-8">
           {/* Transaction Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+          <StaggerContainer className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Total Transactions</p>
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
@@ -187,9 +197,9 @@ export function Transactions() {
               </div>
               <p className="text-2xl lg:text-3xl text-[#0A0A0A] dark:text-white">{totalTransactions}</p>
               <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">transactions</p>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+            <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Total Income</p>
                 <div className="w-8 h-8 rounded-lg bg-[#00A63E]/10 dark:bg-[#4ADE80]/10 flex items-center justify-center">
@@ -200,9 +210,9 @@ export function Transactions() {
                 {formatCurrency(totalIncome)}
               </p>
               <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">income</p>
-            </div>
+            </StaggerItem>
 
-            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
+            <StaggerItem className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 lg:p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs lg:text-sm text-[#717182] dark:text-[#A1A1AA]">Total Expense</p>
                 <div className="w-8 h-8 rounded-lg bg-[#E7000B]/10 dark:bg-[#F87171]/10 flex items-center justify-center">
@@ -213,8 +223,8 @@ export function Transactions() {
                 {formatCurrency(totalExpenses)}
               </p>
               <p className="text-xs text-[#717182] dark:text-[#71717A] mt-1">expense</p>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerContainer>
 
           {/* Filters */}
           <div className="bg-white dark:bg-[#0A0A0A] mb-6 space-y-3">
@@ -353,7 +363,7 @@ export function Transactions() {
           </div>
 
           {/* Transaction List */}
-          <div className="space-y-6">
+          <StaggerContainer className="space-y-6">
             {Array.isArray(transactions) && transactions.map((transaction) => {
               // Format date for display
               const displayDate = transaction.date ? new Date(transaction.date).toLocaleDateString('en-US', {
@@ -361,7 +371,7 @@ export function Transactions() {
               }) : 'No date';
               
               return (
-              <div key={transaction.id}>
+              <StaggerItem key={transaction.id}>
                 <p className="text-sm text-[#717182] dark:text-[#A1A1AA] mb-2 px-1">{displayDate}</p>
                 <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-4 hover:shadow-lg dark:hover:shadow-[#6366F1]/10 transition-shadow">
                   <div className="flex justify-between items-center gap-3">
@@ -401,10 +411,10 @@ export function Transactions() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
               );
             })}
-          </div>
+          </StaggerContainer>
 
           {/* Pagination */}
           {totalTransactions > 0 && (
@@ -452,35 +462,55 @@ export function Transactions() {
               </div>
             </div>
           )}
-        </div>
+        </ProcessingContent>
       </div>
 
       {/* Edit Transaction Modal */}
-      {showEditModal && editingTransaction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#18181B] rounded-[20px] w-full max-w-md max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white dark:bg-[#18181B] border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl text-[#0A0A0A] dark:text-white">Edit Transaction</h3>
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingTransaction(null);
-                }}
-                className="w-8 h-8 rounded-lg bg-[#F3F3F5] dark:bg-[#27272A] flex items-center justify-center hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+      <AnimatePresence>
+        {showEditModal && editingTransaction && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={overlayVariants}
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingTransaction(null);
+              }}
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+              <motion.div
+                className="bg-white dark:bg-[#18181B] rounded-[20px] w-full max-w-md max-h-[90vh] overflow-y-auto pointer-events-auto"
+                initial={shouldAnimate ? "hidden" : false}
+                animate="visible"
+                exit="exit"
+                variants={modalVariants}
+                onClick={(e) => e.stopPropagation()}
               >
-                <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-4">
-              {/* Type Selection */}
-              <div>
-                <label className="block text-sm text-[#717182] dark:text-[#A1A1AA] mb-2">Type</label>
-                <div className="bg-[#ECECF0] dark:bg-[#27272A] rounded-[14px] p-1 flex">
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-white dark:bg-[#18181B] border-b border-black/10 dark:border-white/10 px-6 py-4 flex items-center justify-between">
+                  <h3 className="text-xl text-[#0A0A0A] dark:text-white">Edit Transaction</h3>
                   <button
-                    className={`flex-1 h-9 rounded-[12px] text-sm transition-all ${
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingTransaction(null);
+                    }}
+                    className="w-8 h-8 rounded-lg bg-[#F3F3F5] dark:bg-[#27272A] flex items-center justify-center hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+                  >
+                    <X className="w-5 h-5 text-[#717182] dark:text-[#A1A1AA]" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-4">
+                  {/* Type Selection */}
+                  <div>
+                    <label className="block text-sm text-[#717182] dark:text-[#A1A1AA] mb-2">Type</label>
+                    <div className="bg-[#ECECF0] dark:bg-[#27272A] rounded-[14px] p-1 flex">
+                      <button
+                        className={`flex-1 h-9 rounded-[12px] text-sm transition-all ${
                       editingTransaction.type === "income"
                         ? "bg-white dark:bg-[#18181B] text-[#0A0A0A] dark:text-white shadow-sm"
                         : "text-[#0A0A0A] dark:text-[#A1A1AA]"
@@ -586,56 +616,80 @@ export function Transactions() {
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white dark:bg-[#18181B] border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setEditingTransaction(null);
-                }}
-                className="flex-1 h-11 rounded-[12px] bg-[#F3F3F5] dark:bg-[#27272A] text-[#0A0A0A] dark:text-white hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="flex-1 h-11 rounded-[12px] bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-lg shadow-[#6366F1]/20 hover:shadow-xl hover:shadow-[#6366F1]/30 transition-all"
-              >
-                Save Changes
-              </button>
+                {/* Modal Footer */}
+                <div className="sticky bottom-0 bg-white dark:bg-[#18181B] border-t border-black/10 dark:border-white/10 px-6 py-4 flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingTransaction(null);
+                    }}
+                    className="flex-1 h-11 rounded-[12px] bg-[#F3F3F5] dark:bg-[#27272A] text-[#0A0A0A] dark:text-white hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className="flex-1 h-11 rounded-[12px] bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white shadow-lg shadow-[#6366F1]/20 hover:shadow-xl hover:shadow-[#6366F1]/30 transition-all"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#18181B] rounded-[20px] w-full max-w-sm p-6">
-            <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Delete Transaction</h3>
-            <p className="text-sm text-[#717182] dark:text-[#A1A1AA] mb-6">
-              Are you sure you want to delete this transaction? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setDeleteTransactionId(null);
-                }}
-                className="flex-1 h-11 rounded-[12px] bg-[#F3F3F5] dark:bg-[#27272A] text-[#0A0A0A] dark:text-white hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+              initial={shouldAnimate ? "hidden" : false}
+              animate="visible"
+              exit="exit"
+              variants={overlayVariants}
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeleteTransactionId(null);
+              }}
+            />
+            <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+              <motion.div
+                className="bg-white dark:bg-[#18181B] rounded-[20px] w-full max-w-sm p-6 pointer-events-auto"
+                initial={shouldAnimate ? "hidden" : false}
+                animate="visible"
+                exit="exit"
+                variants={modalVariants}
+                onClick={(e) => e.stopPropagation()}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="flex-1 h-11 rounded-[12px] bg-[#E7000B] text-white hover:bg-[#C5000A] transition-colors"
-              >
-                Delete
-              </button>
+                <h3 className="text-xl text-[#0A0A0A] dark:text-white mb-2">Delete Transaction</h3>
+                <p className="text-sm text-[#717182] dark:text-[#A1A1AA] mb-6">
+                  Are you sure you want to delete this transaction? This action cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteTransactionId(null);
+                    }}
+                    className="flex-1 h-11 rounded-[12px] bg-[#F3F3F5] dark:bg-[#27272A] text-[#0A0A0A] dark:text-white hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    className="flex-1 h-11 rounded-[12px] bg-[#E7000B] text-white hover:bg-[#C5000A] transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Add Transaction Modal */}
       <AddTransaction 
