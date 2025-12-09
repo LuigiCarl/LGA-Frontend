@@ -462,5 +462,283 @@ export function DropdownAnimation({ isOpen, children, className }: DropdownAnima
   );
 }
 
+// ============================================
+// Advanced Micro-Interactions
+// ============================================
+
+// Hover scale effect for interactive elements
+interface HoverScaleProps extends HTMLMotionProps<"div"> {
+  children: ReactNode;
+  scale?: number;
+  disabled?: boolean;
+}
+
+export const HoverScale = forwardRef<HTMLDivElement, HoverScaleProps>(
+  ({ children, scale = 1.02, disabled = false, ...props }, ref) => {
+    const shouldAnimate = useMotionSafe();
+    
+    return (
+      <motion.div
+        ref={ref}
+        whileHover={shouldAnimate && !disabled ? { scale } : undefined}
+        whileTap={shouldAnimate && !disabled ? { scale: scale - 0.04 } : undefined}
+        transition={springConfig.snappy}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+);
+HoverScale.displayName = "HoverScale";
+
+// Tap feedback for buttons and interactive elements
+interface TapFeedbackProps extends HTMLMotionProps<"div"> {
+  children: ReactNode;
+  disabled?: boolean;
+}
+
+export const TapFeedback = forwardRef<HTMLDivElement, TapFeedbackProps>(
+  ({ children, disabled = false, ...props }, ref) => {
+    const shouldAnimate = useMotionSafe();
+    
+    return (
+      <motion.div
+        ref={ref}
+        whileTap={shouldAnimate && !disabled ? { scale: 0.97 } : undefined}
+        transition={springConfig.snappy}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+);
+TapFeedback.displayName = "TapFeedback";
+
+// Shake animation for error feedback
+interface ShakeProps {
+  children: ReactNode;
+  trigger: boolean;
+  className?: string;
+}
+
+export function Shake({ children, trigger, className }: ShakeProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  return (
+    <motion.div
+      className={className}
+      animate={
+        shouldAnimate && trigger
+          ? { x: [0, -4, 4, -4, 4, -2, 2, 0] }
+          : { x: 0 }
+      }
+      transition={{ duration: 0.4 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Success bounce animation
+interface SuccessBounceProps {
+  children: ReactNode;
+  trigger: boolean;
+  className?: string;
+}
+
+export function SuccessBounce({ children, trigger, className }: SuccessBounceProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  return (
+    <motion.div
+      className={className}
+      animate={
+        shouldAnimate && trigger
+          ? { scale: [1, 1.1, 0.95, 1.02, 1] }
+          : { scale: 1 }
+      }
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Pulse animation for attention
+interface PulseProps {
+  children: ReactNode;
+  isActive?: boolean;
+  className?: string;
+}
+
+export function Pulse({ children, isActive = true, className }: PulseProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  return (
+    <motion.div
+      className={className}
+      animate={
+        shouldAnimate && isActive
+          ? { scale: [1, 1.02, 1] }
+          : { scale: 1 }
+      }
+      transition={{ 
+        duration: 2, 
+        repeat: isActive ? Infinity : 0,
+        ease: "easeInOut" 
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Reveal animation for scroll-triggered content
+interface RevealOnScrollProps {
+  children: ReactNode;
+  className?: string;
+  direction?: "up" | "down" | "left" | "right";
+  delay?: number;
+}
+
+export function RevealOnScroll({ 
+  children, 
+  className, 
+  direction = "up",
+  delay = 0 
+}: RevealOnScrollProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  const directionVariants = {
+    up: { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } },
+    down: { hidden: { opacity: 0, y: -30 }, visible: { opacity: 1, y: 0 } },
+    left: { hidden: { opacity: 0, x: 30 }, visible: { opacity: 1, x: 0 } },
+    right: { hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0 } },
+  };
+  
+  return (
+    <motion.div
+      className={className}
+      initial={shouldAnimate ? "hidden" : false}
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={directionVariants[direction]}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// Number flip animation
+interface NumberFlipProps {
+  value: number;
+  className?: string;
+  formatValue?: (value: number) => string;
+}
+
+export function NumberFlip({ value, className, formatValue }: NumberFlipProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  if (!shouldAnimate) {
+    return <span className={className}>{formatValue ? formatValue(value) : value}</span>;
+  }
+  
+  return (
+    <AnimatePresence mode="popLayout">
+      <motion.span
+        key={value}
+        className={className}
+        initial={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        {formatValue ? formatValue(value) : value}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
+// Loading dots animation
+interface LoadingDotsProps {
+  className?: string;
+  dotClassName?: string;
+}
+
+export function LoadingDots({ className, dotClassName }: LoadingDotsProps) {
+  return (
+    <div className={`flex gap-1 ${className || ""}`}>
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className={`w-2 h-2 rounded-full bg-current ${dotClassName || ""}`}
+          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            delay: i * 0.15,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Skeleton shimmer with motion
+interface MotionSkeletonProps {
+  className?: string;
+  rounded?: "sm" | "md" | "lg" | "full";
+}
+
+export function MotionSkeleton({ className, rounded = "md" }: MotionSkeletonProps) {
+  const roundedClass = {
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    full: "rounded-full",
+  };
+  
+  return (
+    <motion.div
+      className={`bg-gradient-to-r from-[#E5E5E7] via-[#F0F0F2] to-[#E5E5E7] dark:from-[#27272A] dark:via-[#3F3F46] dark:to-[#27272A] ${roundedClass[rounded]} ${className || ""}`}
+      animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      style={{ backgroundSize: "200% 100%" }}
+    />
+  );
+}
+
+// Expandable container
+interface ExpandableProps {
+  isExpanded: boolean;
+  children: ReactNode;
+  className?: string;
+}
+
+export function Expandable({ isExpanded, children, className }: ExpandableProps) {
+  const shouldAnimate = useMotionSafe();
+  
+  return (
+    <AnimatePresence initial={false}>
+      {isExpanded && (
+        <motion.div
+          className={className}
+          initial={shouldAnimate ? { height: 0, opacity: 0 } : false}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          style={{ overflow: "hidden" }}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // Presence wrapper for exit animations
 export { AnimatePresence, motion };
