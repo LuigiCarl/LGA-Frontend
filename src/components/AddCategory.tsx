@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X } from "lucide-react";
-import { useCreateCategory } from "../lib/hooks";
+import { useCreateCategory, useCategories } from "../lib/hooks";
 import { useToast } from "../context/ToastContext";
 import { motion, AnimatePresence, modalVariants, overlayVariants, useMotionSafe } from "./ui/motion";
 
@@ -14,36 +14,79 @@ export function AddCategory({ isOpen, onClose, onSuccess }: AddCategoryProps) {
   const toast = useToast();
   const createMutation = useCreateCategory();
   const shouldAnimate = useMotionSafe();
+  
+  // Fetch existing categories to track used colors
+  const { data: categoriesData } = useCategories();
 
   const [formData, setFormData] = useState({
     name: "",
     color: "#6366F1",
     type: "expense" as "expense" | "income",
+    description: "",
   });
 
+  // 24 color options matching Categories.tsx - organized by hue groups
   const colorOptions = [
-    "#6366F1", // Indigo (default)
-    "#8B5CF6", // Purple
-    "#EC4899", // Pink
+    // Reds and Pinks
     "#EF4444", // Red
+    "#DC2626", // Red-600
+    "#F43F5E", // Rose
+    "#EC4899", // Pink
+
+    // Purples and Violets
+    "#D946EF", // Fuchsia
+    "#A855F7", // Purple
+    "#8B5CF6", // Violet
+    "#6366F1", // Indigo
+
+    // Oranges and Yellows
     "#F97316", // Orange
+    "#FB923C", // Orange-400
+    "#F59E0B", // Amber
     "#EAB308", // Yellow
+
+    // Greens
+    "#84CC16", // Lime
     "#22C55E", // Green
+    "#10B981", // Emerald
     "#14B8A6", // Teal
+
+    // Blues and Cyans
     "#06B6D4", // Cyan
+    "#0EA5E9", // Sky
     "#3B82F6", // Blue
+    "#2563EB", // Blue-600
+
+    // Neutrals
+    "#64748B", // Slate
+    "#6B7280", // Gray
+    "#78716C", // Stone
+    "#71717A", // Zinc
   ];
 
-  // Reset form when dialog opens
+  // Compute used colors from existing categories
+  // Compute used colors from existing categories
+  const usedColors = useMemo(() => {
+    if (!categoriesData) return new Set<string>();
+    return new Set(
+      categoriesData
+        .filter((cat) => cat.color)
+        .map((cat) => cat.color!.toUpperCase())
+    );
+  }, [categoriesData]);
+
+  // Reset form when dialog opens - pick first available color
   useEffect(() => {
     if (isOpen) {
+      const firstAvailable = colorOptions.find(c => !usedColors.has(c.toUpperCase())) || "#6366F1";
       setFormData({
         name: "",
-        color: "#6366F1",
+        color: firstAvailable,
         type: "expense",
+        description: "",
       });
     }
-  }, [isOpen]);
+  }, [isOpen, usedColors]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +100,7 @@ export function AddCategory({ isOpen, onClose, onSuccess }: AddCategoryProps) {
         name: formData.name.trim(),
         color: formData.color,
         type: formData.type,
+        description: formData.description.trim() || undefined,
       });
       toast.success("Category created successfully!");
       onSuccess?.();
@@ -68,7 +112,7 @@ export function AddCategory({ isOpen, onClose, onSuccess }: AddCategoryProps) {
   };
 
   const handleClose = () => {
-    setFormData({ name: "", color: "#6366F1", type: "expense" });
+    setFormData({ name: "", color: "#6366F1", type: "expense", description: "" });
     onClose();
   };
 
@@ -157,21 +201,43 @@ export function AddCategory({ isOpen, onClose, onSuccess }: AddCategoryProps) {
                   <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
                     Color *
                   </label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, color })}
-                        className={`w-full aspect-square rounded-lg transition-all ${
-                          formData.color === color
-                            ? "ring-2 ring-[#6366F1] dark:ring-[#A78BFA] ring-offset-2 dark:ring-offset-[#18181B] scale-110"
-                            : "hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                  <div className="grid grid-cols-6 lg:grid-cols-8 gap-2">
+                    {colorOptions.map((color) => {
+                      const isUsed = usedColors.has(color.toUpperCase());
+                      const isSelected = formData.color === color;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          disabled={isUsed}
+                          onClick={() => !isUsed && setFormData({ ...formData, color })}
+                          className={`w-full aspect-square rounded-lg transition-all ${
+                            isSelected
+                              ? "ring-2 ring-[#6366F1] dark:ring-[#A78BFA] ring-offset-2 dark:ring-offset-[#18181B] scale-110"
+                              : isUsed
+                                ? "opacity-30 cursor-not-allowed"
+                                : "hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: color }}
+                          title={isUsed ? "Color already in use" : color}
+                        />
+                      );
+                    })}
                   </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="e.g. Monthly grocery expenses"
+                    rows={3}
+                    className="w-full px-3 py-2 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none resize-none"
+                  />
                 </div>
 
                 {/* Action Buttons */}
