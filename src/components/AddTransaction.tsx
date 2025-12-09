@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronDown, X, Plus, AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { categoriesAPI, accountsAPI, transactionsAPI } from "../lib/api";
 import { useCreateTransaction } from "../lib/hooks";
@@ -70,6 +70,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
   const [showNewAccountForm, setShowNewAccountForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryColor, setNewCategoryColor] = useState("#6366F1");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [newAccountName, setNewAccountName] = useState("");
   const [newAccountType, setNewAccountType] = useState<"bank" | "cash" | "credit_card">("bank");
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
@@ -81,9 +82,24 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
 
   // Predefined colors for categories
   const categoryColors = [
-    "#6366F1", "#8B5CF6", "#EC4899", "#EF4444", "#F59E0B", 
-    "#10B981", "#06B6D4", "#3B82F6", "#6B7280", "#84CC16"
+    // Purples & Violets
+    "#6366F1", "#8B5CF6", "#A855F7", "#C084FC",
+    // Pinks & Reds
+    "#EC4899", "#F472B6", "#EF4444", "#F87171",
+    // Oranges & Yellows
+    "#F59E0B", "#FBBF24", "#F97316", "#FB923C",
+    // Greens
+    "#10B981", "#34D399", "#22C55E", "#84CC16",
+    // Blues & Cyans
+    "#06B6D4", "#22D3EE", "#3B82F6", "#60A5FA",
+    // Neutrals
+    "#6B7280", "#9CA3AF", "#78716C", "#A8A29E",
   ];
+
+  // Get colors already used by existing categories
+  const usedCategoryColors = useMemo(() => {
+    return categories.map(cat => cat.color).filter(Boolean);
+  }, [categories]);
 
   // Account types
   const accountTypes = [
@@ -181,6 +197,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
         name: newCategoryName.trim(),
         type: type,
         color: newCategoryColor,
+        description: newCategoryDescription.trim() || undefined,
       });
       
       // Add to local categories list and select it
@@ -193,6 +210,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
       // Reset form
       setNewCategoryName("");
       setNewCategoryColor("#6366F1");
+      setNewCategoryDescription("");
       setShowNewCategoryForm(false);
       setShowCategoryDropdown(false);
     } catch (error) {
@@ -342,6 +360,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
     setShowNewAccountForm(false);
     setNewCategoryName("");
     setNewCategoryColor("#6366F1");
+    setNewCategoryDescription("");
     setNewAccountName("");
     setNewAccountType("bank");
     onClose();
@@ -351,7 +370,7 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[12px] lg:rounded-[14px] p-4 lg:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[12px] lg:rounded-[14px] p-4 lg:p-6 w-full max-w-md lg:max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
         <div className="flex items-center justify-between mb-6 lg:mb-8">
           <h3 className="text-sm lg:text-base leading-4 text-[#0A0A0A] dark:text-white">
             Add New Transaction
@@ -530,34 +549,82 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
                     </span>
                   </button>
                 ) : (
-                  <div className="p-3 border-b border-black/10 dark:border-white/10 space-y-2">
-                    <input
-                      type="text"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="Category name"
-                      className="w-full h-8 px-2 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent dark:border-white/10 rounded-lg text-xs text-[#0A0A0A] dark:text-white placeholder:text-[#717182] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]"
-                      autoFocus
-                    />
-                    <div className="flex gap-1 flex-wrap">
-                      {categoryColors.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setNewCategoryColor(color)}
-                          className={`w-5 h-5 rounded-full transition-all ${newCategoryColor === color ? 'ring-2 ring-offset-1 ring-[#0A0A0A] dark:ring-white' : ''}`}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
+                  <div className="p-4 border-b border-black/10 dark:border-white/10 space-y-4">
+                    {/* Category Name */}
+                    <div>
+                      <label className="block text-xs lg:text-sm text-[#0A0A0A] dark:text-white mb-1.5">
+                        Category Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="e.g. Groceries"
+                        className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none"
+                        autoFocus
+                      />
                     </div>
-                    <div className="flex gap-2">
+                    
+                    {/* Type Indicator */}
+                    <div>
+                      <label className="block text-xs lg:text-sm text-[#0A0A0A] dark:text-white mb-1.5">
+                        Type
+                      </label>
+                      <div className="h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg flex items-center">
+                        <span className="text-sm text-[#717182] dark:text-[#A1A1AA] capitalize">{type}</span>
+                      </div>
+                      <p className="text-xs text-[#717182] dark:text-[#A1A1AA] mt-1">Based on selected transaction type</p>
+                    </div>
+                    
+                    {/* Color Picker */}
+                    <div>
+                      <label className="block text-xs lg:text-sm text-[#0A0A0A] dark:text-white mb-1.5">
+                        Color *
+                      </label>
+                      <div className="grid grid-cols-6 lg:grid-cols-8 gap-1.5 lg:gap-2">
+                        {categoryColors.map((color) => {
+                          const isUsed = usedCategoryColors.includes(color);
+                          const isSelected = newCategoryColor === color;
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => !isUsed && setNewCategoryColor(color)}
+                              disabled={isUsed}
+                              className={`w-full aspect-square rounded-md lg:rounded-lg transition-all ${
+                                isSelected ? "ring-2 ring-[#030213] dark:ring-white ring-offset-1 lg:ring-offset-2 dark:ring-offset-[#18181B]" : ""
+                              } ${isUsed ? "opacity-30 cursor-not-allowed" : "hover:scale-105"}`}
+                              style={{ backgroundColor: color }}
+                              title={isUsed ? "Color already in use" : color}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Description */}
+                    <div>
+                      <label className="block text-xs lg:text-sm text-[#0A0A0A] dark:text-white mb-1.5">
+                        Description
+                      </label>
+                      <textarea
+                        value={newCategoryDescription}
+                        onChange={(e) => setNewCategoryDescription(e.target.value)}
+                        placeholder="Enter a description for this category"
+                        className="w-full h-16 px-3 py-2 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none resize-none"
+                      />
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => {
                           setShowNewCategoryForm(false);
                           setNewCategoryName("");
+                          setNewCategoryDescription("");
                         }}
-                        className="flex-1 h-7 text-xs text-[#717182] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                        className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 text-[#0A0A0A] dark:text-white text-sm rounded-lg hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors"
                       >
                         Cancel
                       </button>
@@ -565,9 +632,9 @@ export function AddTransaction({ isOpen, onClose, onSuccess }: AddTransactionPro
                         type="button"
                         onClick={handleCreateCategory}
                         disabled={isCreatingCategory || !newCategoryName.trim()}
-                        className="flex-1 h-7 bg-[#6366F1] text-white text-xs rounded-lg hover:bg-[#5558E3] transition-colors disabled:opacity-50"
+                        className="flex-1 h-9 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-lg shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:opacity-90 transition-opacity disabled:opacity-50"
                       >
-                        {isCreatingCategory ? 'Creating...' : 'Create'}
+                        {isCreatingCategory ? 'Creating...' : 'Create Category'}
                       </button>
                     </div>
                   </div>

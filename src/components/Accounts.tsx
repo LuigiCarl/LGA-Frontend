@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon, ChevronRight, TrendingUp, TrendingDown, ArrowLeftRight } from "lucide-react";
+import { Wallet, Plus, Pencil, Trash2, X, Building, Banknote, CreditCard, Landmark, Coins, PiggyBank, LucideIcon, ChevronRight, ChevronDown, TrendingUp, TrendingDown, ArrowLeftRight } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { AccountDetail } from "./AccountDetail";
 import { TransferModal } from "./TransferModal";
@@ -56,6 +56,7 @@ export function Accounts() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -236,9 +237,11 @@ export function Accounts() {
         <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/icon.png" 
+                alt="FinanEase Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -271,9 +274,11 @@ export function Accounts() {
         <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/icon.png" 
+                alt="FinanEase Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -476,21 +481,43 @@ export function Accounts() {
               </div>
 
               {/* Account Type */}
-              <div>
+              <div className="relative">
                 <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
                   Account Type *
                 </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleTypeChange(e.target.value)}
-                  className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none"
-                  required
+                <button
+                  type="button"
+                  className="w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent dark:border-white/10 rounded-lg flex items-center justify-between hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+                  onClick={() => setShowTypeDropdown(!showTypeDropdown)}
                 >
-                  <option value="">Select a type</option>
-                  {accountTypes.map(type => (
-                    <option key={type.name} value={type.name}>{type.displayName}</option>
-                  ))}
-                </select>
+                  <span className={`text-sm ${formData.type ? "text-[#0A0A0A] dark:text-white" : "text-[#717182] dark:text-[#A1A1AA]"}`}>
+                    {formData.type ? accountTypes.find(t => t.name === formData.type)?.displayName : "Select a type"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA] opacity-50" />
+                </button>
+                {showTypeDropdown && (
+                  <div className="absolute z-10 mt-1 w-full bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {accountTypes.map((type) => {
+                      const IconComponent = getIconComponent(type.icon);
+                      return (
+                        <button
+                          key={type.name}
+                          type="button"
+                          className="w-full h-10 px-3 flex items-center gap-2 hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors last:rounded-b-lg first:rounded-t-lg"
+                          onClick={() => {
+                            handleTypeChange(type.name);
+                            setShowTypeDropdown(false);
+                          }}
+                        >
+                          <IconComponent className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA]" />
+                          <span className="text-sm text-[#0A0A0A] dark:text-white">
+                            {type.displayName}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Initial Balance */}

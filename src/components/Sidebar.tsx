@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { PreloadLink } from './PreloadLink';
 import { useAuth } from '../context/AuthContext';
 import { useEmoji } from '../context/EmojiContext';
+import { LoadingButton } from './ui/loading-button';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -28,6 +29,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const { user, isAdmin, logout } = useAuth();
   const { emoji } = useEmoji();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const allNavItems = [
     { path: '/dashboard', icon: Home, label: 'Home' },
@@ -49,8 +51,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   };
 
   const confirmSignOut = async () => {
-    await logout();
-    navigate('/');
+    setIsSigningOut(true);
+    try {
+      await logout();
+      navigate('/');
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -70,9 +77,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* Logo */}
       <div className="h-[88.8px] flex items-center gap-3 px-6 border-b border-black/10 dark:border-white/10 flex-shrink-0">
-        <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[14px] flex items-center justify-center shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 flex-shrink-0">
-          <Wallet className="w-6 h-6 text-white" />
-        </div>
+        <img 
+          src="/icon.png" 
+          alt="FinanEase Logo" 
+          className="w-12 h-12 object-contain flex-shrink-0"
+        />
         {!isCollapsed && (
           <div>
             <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white whitespace-nowrap overflow-hidden">
@@ -180,16 +189,20 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSignOutDialog(false)}
-                className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors"
+                disabled={isSigningOut}
+                className="flex-1 h-9 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-lg text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
-              <button
+              <LoadingButton
                 onClick={confirmSignOut}
-                className="flex-1 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/30 dark:hover:shadow-[#6366F1]/40 transition-all"
+                isLoading={isSigningOut}
+                loadingText="Signing out..."
+                className="flex-1"
+                size="sm"
               >
                 Sign Out
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>

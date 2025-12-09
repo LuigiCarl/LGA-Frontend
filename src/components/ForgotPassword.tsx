@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router';
-import { Wallet, ArrowLeft, Check, X, Eye, EyeOff, Loader2, Mail, KeyRound } from 'lucide-react';
+import { ArrowLeft, Check, X, Eye, EyeOff, Mail, KeyRound, Lock } from 'lucide-react';
 import { authAPI } from '../lib/api';
+import { FloatingInput } from './ui/floating-input';
+import { LoadingButton } from './ui/loading-button';
 
 type ViewMode = 'request' | 'reset' | 'success';
 
@@ -150,11 +152,13 @@ export function ForgotPassword() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex flex-col items-center pt-8 px-4">
       {/* Header */}
-      <div className="w-full max-w-[448px] mb-8">
-        <div className="flex justify-center mb-5">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-2xl flex items-center justify-center shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30">
-            <Wallet className="w-8 h-8 text-white" />
-          </div>
+      <div className="w-full max-w-[448px] mb-6">
+        <div className="flex justify-center mb-3">
+          <img 
+            src="/icon.png" 
+            alt="FinanEase Logo" 
+            className="w-24 h-24 object-contain"
+          />
         </div>
         <div className="text-center">
           <h1 className="text-[30px] leading-9 text-[#0A0A0A] dark:text-white mb-2">
@@ -189,49 +193,28 @@ export function ForgotPassword() {
             </div>
 
             <form onSubmit={handleRequestSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                  Email Address <span className="text-[#EF4444]">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setRequestError('');
-                  }}
-                  placeholder="you@example.com"
-                  className={`w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                    requestError
-                      ? 'border-[#EF4444] dark:border-[#EF4444]'
-                      : 'border-transparent dark:border-white/10'
-                  } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-                  autoFocus
-                />
-                {requestError && (
-                  <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {requestError}
-                  </p>
-                )}
-              </div>
+              <FloatingInput
+                type="email"
+                label="Email Address"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setRequestError('');
+                }}
+                icon={<Mail className="w-4 h-4" />}
+                error={requestError}
+                required
+                autoFocus
+              />
 
-              <button
+              <LoadingButton
                 type="submit"
-                disabled={isRequestLoading}
-                className={`w-full h-9 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-lg shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 transition-all ${
-                  isRequestLoading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
-                }`}
+                isLoading={isRequestLoading}
+                loadingText="Sending..."
+                className="w-full"
               >
-                {isRequestLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </span>
-                ) : (
-                  'Send Reset Link'
-                )}
-              </button>
+                Send Reset Link
+              </LoadingButton>
             </form>
 
             <Link
@@ -312,38 +295,27 @@ export function ForgotPassword() {
             <form onSubmit={handleResetSubmit} className="space-y-4">
               {/* New Password */}
               <div>
-                <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                  New Password <span className="text-[#EF4444]">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      if (resetErrors.password) setResetErrors({ ...resetErrors, password: undefined });
-                    }}
-                    placeholder="••••••••"
-                    className={`w-full h-9 px-3 pr-10 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                      resetErrors.password
-                        ? 'border-[#EF4444] dark:border-[#EF4444]'
-                        : 'border-transparent dark:border-white/10'
-                    } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {resetErrors.password && (
-                  <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {resetErrors.password}
-                  </p>
-                )}
+                <FloatingInput
+                  type={showPassword ? 'text' : 'password'}
+                  label="New Password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (resetErrors.password) setResetErrors({ ...resetErrors, password: undefined });
+                  }}
+                  icon={<Lock className="w-4 h-4" />}
+                  endIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
+                  error={resetErrors.password}
+                  required
+                />
 
                 {/* Password Strength */}
                 {password && (
@@ -381,65 +353,37 @@ export function ForgotPassword() {
               </div>
 
               {/* Confirm Password */}
-              <div>
-                <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                  Confirm Password <span className="text-[#EF4444]">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPasswordConfirmation ? 'text' : 'password'}
-                    value={passwordConfirmation}
-                    onChange={(e) => {
-                      setPasswordConfirmation(e.target.value);
-                      if (resetErrors.passwordConfirmation) setResetErrors({ ...resetErrors, passwordConfirmation: undefined });
-                    }}
-                    placeholder="••••••••"
-                    className={`w-full h-9 px-3 pr-10 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                      resetErrors.passwordConfirmation
-                        ? 'border-[#EF4444] dark:border-[#EF4444]'
-                        : passwordConfirmation && password === passwordConfirmation
-                        ? 'border-[#10B981] dark:border-[#10B981]'
-                        : 'border-transparent dark:border-white/10'
-                    } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-                  />
+              <FloatingInput
+                type={showPasswordConfirmation ? 'text' : 'password'}
+                label="Confirm Password"
+                value={passwordConfirmation}
+                onChange={(e) => {
+                  setPasswordConfirmation(e.target.value);
+                  if (resetErrors.passwordConfirmation) setResetErrors({ ...resetErrors, passwordConfirmation: undefined });
+                }}
+                icon={<Lock className="w-4 h-4" />}
+                endIcon={
                   <button
                     type="button"
                     onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                    className="text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
                   >
                     {showPasswordConfirmation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                </div>
-                {resetErrors.passwordConfirmation && (
-                  <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                    <X className="w-3 h-3" />
-                    {resetErrors.passwordConfirmation}
-                  </p>
-                )}
-                {passwordConfirmation && password === passwordConfirmation && !resetErrors.passwordConfirmation && (
-                  <p className="mt-1 text-xs text-[#10B981] flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Passwords match
-                  </p>
-                )}
-              </div>
+                }
+                error={resetErrors.passwordConfirmation}
+                success={passwordConfirmation && password === passwordConfirmation && !resetErrors.passwordConfirmation ? 'Passwords match' : undefined}
+                required
+              />
 
-              <button
+              <LoadingButton
                 type="submit"
-                disabled={isResetLoading}
-                className={`w-full h-9 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-lg shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 transition-all ${
-                  isResetLoading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
-                }`}
+                isLoading={isResetLoading}
+                loadingText="Resetting..."
+                className="w-full"
               >
-                {isResetLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Resetting...
-                  </span>
-                ) : (
-                  'Reset Password'
-                )}
-              </button>
+                Reset Password
+              </LoadingButton>
             </form>
 
             <Link

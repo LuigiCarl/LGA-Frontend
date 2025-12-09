@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { Wallet, Eye, EyeOff, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Check, X, User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { FloatingInput } from './ui/floating-input';
+import { LoadingButton } from './ui/loading-button';
 
 export function SignIn() {
   const navigate = useNavigate();
@@ -120,11 +122,13 @@ export function SignIn() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex flex-col items-center pt-8 px-4">
       {/* Header */}
-      <div className="w-full max-w-[448px] mb-8">
-        <div className="flex justify-center mb-5">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-2xl flex items-center justify-center shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30">
-            <Wallet className="w-8 h-8 text-white" />
-          </div>
+      <div className="w-full max-w-[448px] mb-6">
+        <div className="flex justify-center mb-3">
+          <img 
+            src="/icon.png" 
+            alt="FinanEase Logo" 
+            className="w-24 h-24 object-contain"
+          />
         </div>
         <div className="text-center">
           <h1 className="text-[30px] leading-9 text-[#0A0A0A] dark:text-white mb-2">
@@ -152,98 +156,58 @@ export function SignIn() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name Field (Sign Up Only) */}
           {isSignUp && (
-            <div>
-              <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                Name <span className="text-[#EF4444]">*</span>
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (errors.name) setErrors({ ...errors, name: undefined });
-                }}
-                placeholder="John Doe"
-                className={`w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                  errors.name
-                    ? 'border-[#EF4444] dark:border-[#EF4444]'
-                    : 'border-transparent dark:border-white/10'
-                } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-              />
-              {errors.name && (
-                <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                  <X className="w-3 h-3" />
-                  {errors.name}
-                </p>
-              )}
-            </div>
+            <FloatingInput
+              type="text"
+              label="Name"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors({ ...errors, name: undefined });
+              }}
+              error={errors.name}
+              required
+              icon={<User className="w-4 h-4" />}
+            />
           )}
 
           {/* Email Field */}
-          <div>
-            <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-              Email <span className="text-[#EF4444]">*</span>
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) setErrors({ ...errors, email: undefined });
-              }}
-              placeholder="you@example.com"
-              className={`w-full h-9 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                errors.email
-                  ? 'border-[#EF4444] dark:border-[#EF4444]'
-                  : 'border-transparent dark:border-white/10'
-              } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-            />
-            {errors.email && (
-              <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                <X className="w-3 h-3" />
-                {errors.email}
-              </p>
-            )}
-          </div>
+          <FloatingInput
+            type="email"
+            label="Email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors({ ...errors, email: undefined });
+            }}
+            error={errors.email}
+            required
+            icon={<Mail className="w-4 h-4" />}
+          />
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-              Password <span className="text-[#EF4444]">*</span>
-              {isSignUp && (
-                <span className="text-[#717182] dark:text-[#A1A1AA] ml-1">(min: 8 characters)</span>
-              )}
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: undefined });
-                }}
-                placeholder="••••••••"
-                className={`w-full h-9 px-3 pr-10 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                  errors.password
-                    ? 'border-[#EF4444] dark:border-[#EF4444]'
-                    : 'border-transparent dark:border-white/10'
-                } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                <X className="w-3 h-3" />
-                {errors.password}
-              </p>
-            )}
+            <FloatingInput
+              type={showPassword ? 'text' : 'password'}
+              label={isSignUp ? 'Password (min: 8 characters)' : 'Password'}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors({ ...errors, password: undefined });
+              }}
+              error={errors.password}
+              required
+              icon={<Lock className="w-4 h-4" />}
+              endIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
 
             {/* Password Strength Indicator (Sign Up Only) */}
             {isSignUp && password && passwordStrength && (
@@ -299,89 +263,46 @@ export function SignIn() {
           {/* Confirm Password Field (Sign Up Only) */}
           {isSignUp && (
             <div>
-              <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
-                Confirm Password <span className="text-[#EF4444]">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPasswordConfirmation ? 'text' : 'password'}
-                  value={passwordConfirmation}
-                  onChange={(e) => {
-                    setPasswordConfirmation(e.target.value);
-                    if (errors.passwordConfirmation)
-                      setErrors({ ...errors, passwordConfirmation: undefined });
-                  }}
-                  placeholder="••••••••"
-                  className={`w-full h-9 px-3 pr-10 bg-[#F3F3F5] dark:bg-[#27272A] border ${
-                    errors.passwordConfirmation
-                      ? 'border-[#EF4444] dark:border-[#EF4444]'
-                      : passwordConfirmation && password === passwordConfirmation
-                      ? 'border-[#10B981] dark:border-[#10B981]'
-                      : 'border-transparent dark:border-white/10'
-                  } rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
-                  aria-label={showPasswordConfirmation ? 'Hide password' : 'Show password'}
-                >
-                  {showPasswordConfirmation ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              {errors.passwordConfirmation && (
-                <p className="mt-1 text-xs text-[#EF4444] flex items-center gap-1">
-                  <X className="w-3 h-3" />
-                  {errors.passwordConfirmation}
-                </p>
-              )}
-              {passwordConfirmation &&
-                password === passwordConfirmation &&
-                !errors.passwordConfirmation && (
-                  <p className="mt-1 text-xs text-[#10B981] flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Passwords match
-                  </p>
-                )}
+              <FloatingInput
+                label="Confirm Password"
+                type={showPasswordConfirmation ? 'text' : 'password'}
+                value={passwordConfirmation}
+                onChange={(e) => {
+                  setPasswordConfirmation(e.target.value);
+                  if (errors.passwordConfirmation)
+                    setErrors({ ...errors, passwordConfirmation: undefined });
+                }}
+                icon={<Lock className="w-4 h-4" />}
+                endIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                    className="text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                    aria-label={showPasswordConfirmation ? 'Hide password' : 'Show password'}
+                  >
+                    {showPasswordConfirmation ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                }
+                error={errors.passwordConfirmation}
+                required
+                success={passwordConfirmation && password === passwordConfirmation && !errors.passwordConfirmation ? 'Passwords match' : undefined}
+              />
             </div>
           )}
 
-          <button
+          <LoadingButton
             type="submit"
-            disabled={isLoading}
-            className={`w-full h-9 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-lg shadow-lg shadow-[#6366F1]/20 dark:shadow-[#6366F1]/30 transition-all ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
-            }`}
+            isLoading={isLoading}
+            loadingText={isSignUp ? 'Creating account...' : 'Signing in...'}
+            className="w-full"
           >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {isSignUp ? 'Creating account...' : 'Signing in...'}
-              </span>
-            ) : isSignUp ? (
-              'Create Account'
-            ) : (
-              'Sign In'
-            )}
-          </button>
+            {isSignUp ? 'Create Account' : 'Sign In'}
+          </LoadingButton>
         </form>
-
-        {/* Demo Credentials (Sign In Only) */}
-        {!isSignUp && (
-          <div className="mt-4 p-4 bg-[#ECECF0]/50 dark:bg-[#27272A]/50 border border-black/10 dark:border-white/10 rounded-[10px]">
-            <p className="text-sm leading-5 text-[#717182] dark:text-[#A1A1AA] mb-1">
-              Demo credentials:
-            </p>
-            <p className="text-sm leading-5 text-[#0A0A0A] dark:text-white mb-1">
-              Email: demo@example.com
-            </p>
-            <p className="text-sm leading-5 text-[#0A0A0A] dark:text-white">Password: demo123</p>
-          </div>
-        )}
       </div>
 
       {/* Toggle Mode Link */}

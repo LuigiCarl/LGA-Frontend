@@ -5,7 +5,6 @@ import {
   MessageSquare,
   Shield,
   X,
-  Wallet,
   DollarSign,
   ChevronDown,
   Hash,
@@ -18,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEmoji } from '../context/EmojiContext';
 import { useCurrency, CURRENCIES, CurrencyCode } from '../context/CurrencyContext';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { LoadingButton } from './ui/loading-button';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -34,6 +34,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const menuItems = [
     { path: '/dashboard/profile', icon: User, label: 'Profile' },
@@ -46,9 +47,14 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   };
 
   const confirmSignOut = async () => {
-    await logout();
-    navigate('/');
-    onClose();
+    setIsSigningOut(true);
+    try {
+      await logout();
+      navigate('/');
+      onClose();
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   const handleNavClick = () => {
@@ -70,9 +76,11 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         {/* Header with Logo and Close Button */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-black/10 dark:border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[14px] flex items-center justify-center shadow-lg shadow-[#6366F1]/20">
-              <Wallet className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/icon.png" 
+              alt="FinanEase Logo" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h1 className="text-lg font-semibold text-[#0A0A0A] dark:text-white">FinanEase</h1>
               <p className="text-xs text-[#717182] dark:text-[#A1A1AA]">v1.0</p>
@@ -324,16 +332,19 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSignOutDialog(false)}
-                className="flex-1 h-11 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-[10px] text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors"
+                disabled={isSigningOut}
+                className="flex-1 h-11 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 rounded-[10px] text-sm text-[#0A0A0A] dark:text-white hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
-              <button
+              <LoadingButton
                 onClick={confirmSignOut}
-                className="flex-1 h-11 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] text-white text-sm rounded-[10px] shadow-lg shadow-[#6366F1]/20 hover:shadow-xl transition-all"
+                isLoading={isSigningOut}
+                loadingText="Signing out..."
+                className="flex-1"
               >
                 Sign Out
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>

@@ -39,9 +39,32 @@ export function Categories() {
   });
 
   const colorOptions = [
-    "#FF6B6B", "#F38181", "#AA96DA", "#FFA07A", "#95E1D3",
-    "#4ECDC4", "#6BCF7F", "#5BC0DE", "#FFB6B9", "#FEC8D8",
+    // Purples & Violets
+    "#6366F1", "#8B5CF6", "#A855F7", "#C084FC",
+    // Pinks & Reds
+    "#EC4899", "#F472B6", "#EF4444", "#F87171",
+    // Oranges & Yellows
+    "#F59E0B", "#FBBF24", "#F97316", "#FB923C",
+    // Greens
+    "#10B981", "#34D399", "#22C55E", "#84CC16",
+    // Blues & Cyans
+    "#06B6D4", "#22D3EE", "#3B82F6", "#60A5FA",
+    // Neutrals
+    "#6B7280", "#9CA3AF", "#78716C", "#A8A29E",
   ];
+
+  // Get colors already used by other categories (exclude current category when editing)
+  const usedColors = useMemo(() => {
+    return categories
+      .filter(cat => editingCategory ? cat.id !== editingCategory.id : true)
+      .map(cat => cat.color)
+      .filter(Boolean);
+  }, [categories, editingCategory]);
+
+  // Available colors (not yet used)
+  const availableColors = useMemo(() => {
+    return colorOptions.filter(color => !usedColors.includes(color));
+  }, [usedColors]);
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
@@ -140,9 +163,11 @@ export function Categories() {
         <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/icon.png" 
+                alt="FinanEase Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -170,9 +195,11 @@ export function Categories() {
         <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/icon.png" 
+                alt="FinanEase Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -322,7 +349,7 @@ export function Categories() {
         {/* Dialog/Modal */}
         {isDialogOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-md p-6">
+            <div className="bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] w-full max-w-sm lg:max-w-md p-6 max-h-[90vh] overflow-y-auto">
               {/* Dialog Header */}
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-base text-[#0A0A0A] dark:text-white">
@@ -383,19 +410,30 @@ export function Categories() {
                   <label className="block text-sm leading-[14px] text-[#0A0A0A] dark:text-white mb-2">
                     Color *
                   </label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {colorOptions.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, color })}
-                        className={`w-full aspect-square rounded-lg ${
-                          formData.color === color ? "ring-2 ring-[#030213] dark:ring-white ring-offset-2 dark:ring-offset-[#18181B]" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                  <div className="grid grid-cols-6 lg:grid-cols-8 gap-1.5 lg:gap-2">
+                    {colorOptions.map((color) => {
+                      const isUsed = usedColors.includes(color);
+                      const isSelected = formData.color === color;
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => !isUsed && setFormData({ ...formData, color })}
+                          disabled={isUsed}
+                          className={`w-full aspect-square rounded-md lg:rounded-lg transition-all ${
+                            isSelected ? "ring-2 ring-[#030213] dark:ring-white ring-offset-1 lg:ring-offset-2 dark:ring-offset-[#18181B]" : ""
+                          } ${isUsed ? "opacity-30 cursor-not-allowed" : "hover:scale-105"}`}
+                          style={{ backgroundColor: color }}
+                          title={isUsed ? "Color already in use" : color}
+                        />
+                      );
+                    })}
                   </div>
+                  {availableColors.length === 0 && (
+                    <p className="text-xs text-[#717182] dark:text-[#A1A1AA] mt-2">
+                      All colors are in use. You can still edit existing categories.
+                    </p>
+                  )}
                 </div>
 
                 {/* Description */}

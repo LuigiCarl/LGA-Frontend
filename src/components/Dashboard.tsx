@@ -55,9 +55,11 @@ export function Dashboard() {
       {/* Mobile Header */}
       <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-            <Wallet className="w-5 h-5 text-white" />
-          </div>
+          <img 
+            src="/icon.png" 
+            alt="FinanEase Logo" 
+            className="w-10 h-10 object-contain"
+          />
           <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
         </div>
         <div className="flex items-center gap-2">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ArrowRight, Loader2 } from "lucide-react";
+import { X, ArrowRight, Loader2, ChevronDown, Wallet, Building, CreditCard } from "lucide-react";
 import { useCurrency } from "../context/CurrencyContext";
 import { useAccounts, useTransferBetweenAccounts } from "../lib/hooks";
 import { useMonth } from "../context/MonthContext";
@@ -25,8 +25,19 @@ export function TransferModal({ isOpen, onClose }: TransferModalProps) {
     description: "",
     date: new Date().toISOString().split('T')[0],
   });
+  const [showFromDropdown, setShowFromDropdown] = useState(false);
+  const [showToDropdown, setShowToDropdown] = useState(false);
 
   const accounts: Account[] = accountsData || [];
+
+  const getAccountIcon = (type: string) => {
+    switch (type) {
+      case 'bank': return Building;
+      case 'cash': return Wallet;
+      case 'credit_card': return CreditCard;
+      default: return Building;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,23 +112,51 @@ export function TransferModal({ isOpen, onClose }: TransferModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* From Account */}
-          <div>
+          <div className="relative">
             <label className="block text-sm text-[#0A0A0A] dark:text-white mb-2">
               From Account *
             </label>
-            <select
-              value={formData.from_account_id}
-              onChange={(e) => setFormData({ ...formData, from_account_id: e.target.value })}
-              className="w-full h-10 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none"
-              required
+            <button
+              type="button"
+              className="w-full h-10 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent dark:border-white/10 rounded-lg flex items-center justify-between hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+              onClick={() => setShowFromDropdown(!showFromDropdown)}
             >
-              <option value="">Select source account</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name} ({formatCurrency(account.cumulativeBalance ?? account.balance)})
-                </option>
-              ))}
-            </select>
+              <span className={`text-sm ${formData.from_account_id ? "text-[#0A0A0A] dark:text-white" : "text-[#717182] dark:text-[#A1A1AA]"}`}>
+                {fromAccount ? `${fromAccount.name} (${formatCurrency(fromAccount.cumulativeBalance ?? fromAccount.balance)})` : "Select source account"}
+              </span>
+              <ChevronDown className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA] opacity-50" />
+            </button>
+            {showFromDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {accounts.map((account) => {
+                  const IconComponent = getAccountIcon(account.type);
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      className="w-full h-10 px-3 flex items-center gap-2 hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors last:rounded-b-lg first:rounded-t-lg"
+                      onClick={() => {
+                        setFormData({ ...formData, from_account_id: String(account.id) });
+                        setShowFromDropdown(false);
+                      }}
+                    >
+                      <IconComponent className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA]" />
+                      <span className="text-sm text-[#0A0A0A] dark:text-white flex-1 text-left">
+                        {account.name}
+                      </span>
+                      <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">
+                        {formatCurrency(account.cumulativeBalance ?? account.balance)}
+                      </span>
+                    </button>
+                  );
+                })}
+                {accounts.length === 0 && (
+                  <div className="px-3 py-4 text-center text-xs text-[#717182] dark:text-[#A1A1AA]">
+                    No accounts available
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Arrow Indicator */}
@@ -130,25 +169,53 @@ export function TransferModal({ isOpen, onClose }: TransferModalProps) {
           </div>
 
           {/* To Account */}
-          <div>
+          <div className="relative">
             <label className="block text-sm text-[#0A0A0A] dark:text-white mb-2">
               To Account *
             </label>
-            <select
-              value={formData.to_account_id}
-              onChange={(e) => setFormData({ ...formData, to_account_id: e.target.value })}
-              className="w-full h-10 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white border border-transparent focus:border-[#6366F1] dark:focus:border-[#8B5CF6] focus:outline-none"
-              required
+            <button
+              type="button"
+              className="w-full h-10 px-3 bg-[#F3F3F5] dark:bg-[#27272A] border border-transparent dark:border-white/10 rounded-lg flex items-center justify-between hover:bg-[#ECECF0] dark:hover:bg-[#18181B] transition-colors"
+              onClick={() => setShowToDropdown(!showToDropdown)}
             >
-              <option value="">Select destination account</option>
-              {accounts
-                .filter((a) => a.id !== parseInt(formData.from_account_id))
-                .map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} ({formatCurrency(account.cumulativeBalance ?? account.balance)})
-                  </option>
-                ))}
-            </select>
+              <span className={`text-sm ${formData.to_account_id ? "text-[#0A0A0A] dark:text-white" : "text-[#717182] dark:text-[#A1A1AA]"}`}>
+                {toAccount ? `${toAccount.name} (${formatCurrency(toAccount.cumulativeBalance ?? toAccount.balance)})` : "Select destination account"}
+              </span>
+              <ChevronDown className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA] opacity-50" />
+            </button>
+            {showToDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {accounts
+                  .filter((a) => a.id !== parseInt(formData.from_account_id))
+                  .map((account) => {
+                    const IconComponent = getAccountIcon(account.type);
+                    return (
+                      <button
+                        key={account.id}
+                        type="button"
+                        className="w-full h-10 px-3 flex items-center gap-2 hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors last:rounded-b-lg first:rounded-t-lg"
+                        onClick={() => {
+                          setFormData({ ...formData, to_account_id: String(account.id) });
+                          setShowToDropdown(false);
+                        }}
+                      >
+                        <IconComponent className="w-4 h-4 text-[#717182] dark:text-[#A1A1AA]" />
+                        <span className="text-sm text-[#0A0A0A] dark:text-white flex-1 text-left">
+                          {account.name}
+                        </span>
+                        <span className="text-xs text-[#717182] dark:text-[#A1A1AA]">
+                          {formatCurrency(account.cumulativeBalance ?? account.balance)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                {accounts.filter((a) => a.id !== parseInt(formData.from_account_id)).length === 0 && (
+                  <div className="px-3 py-4 text-center text-xs text-[#717182] dark:text-[#A1A1AA]">
+                    No other accounts available
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Amount */}

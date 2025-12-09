@@ -1,4 +1,4 @@
-import { Wallet, Users, MessageSquare, Search, Filter, Plus, Pencil, Trash2, X, Send, Info, AlertCircle, Check, Bell, Ban, CheckCircle, GripVertical, LayoutGrid } from "lucide-react";
+import { Users, MessageSquare, Search, Filter, Plus, Pencil, Trash2, X, Send, Info, AlertCircle, Check, Bell, Ban, CheckCircle, GripVertical, LayoutGrid } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "../context/CurrencyContext";
@@ -474,9 +474,11 @@ export function Admin() {
       <div className="flex-shrink-0 bg-white dark:bg-[#0A0A0A] border-b border-black/10 dark:border-white/10 px-4 lg:px-8 py-4">
         <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-[10px] flex items-center justify-center shadow-sm">
-              <Wallet className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src="/icon.png" 
+              alt="FinanEase Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <h1 className="text-[20px] leading-7 text-[#0A0A0A] dark:text-white">FinanEase</h1>
           </div>
           <div className="flex items-center gap-2">

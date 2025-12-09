@@ -49,5 +49,11 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: false, // Disable DaisyUI themes to use our custom styling
+    base: false, // Disable base styles to prevent conflicts
+    styled: true,
+    utils: true,
+  },
 }
