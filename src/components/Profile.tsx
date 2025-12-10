@@ -1,4 +1,4 @@
-import { Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X, Hash, Download, Share } from "lucide-react";
+import { Camera, User, Mail, DollarSign, Bell, Moon, Globe, Lock, Info, LogOut, Eye, EyeOff, X, Hash, Download, Share, Trash2, AlertTriangle, Sun, Monitor } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useDarkMode } from "../context/DarkModeContext";
@@ -11,7 +11,7 @@ import { AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe 
 
 
 export function Profile() {
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { isDarkMode, toggleDarkMode, isSystemMode, setSystemMode } = useDarkMode();
   const { emoji, setEmoji } = useEmoji();
   const { currency, setCurrency, useCompactNumbers, setUseCompactNumbers } = useCurrency();
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWA();
@@ -23,6 +23,13 @@ export function Profile() {
   
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [deleteAccountForm, setDeleteAccountForm] = useState({
+    password: "",
+    confirmText: "",
+  });
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -194,6 +201,34 @@ export function Profile() {
     navigate("/");
   };
 
+  const handleDeleteAccount = () => {
+    setShowDeleteAccountDialog(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (deleteAccountForm.password.length < 8 || deleteAccountForm.confirmText !== "DELETE") {
+      toast.error("Please provide your password and type 'DELETE' to confirm");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await profileAPI.deleteAccount(deleteAccountForm.password);
+      toast.success("Account deleted successfully");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to delete account. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteDialogClose = () => {
+    setShowDeleteAccountDialog(false);
+    setDeleteAccountForm({ password: "", confirmText: "" });
+    setShowDeletePassword(false);
+  };
+
   const handleEditClick = () => {
     setIsEditMode(true);
   };
@@ -208,7 +243,6 @@ export function Profile() {
       await profileAPI.update({
         name: editForm.name,
         email: editForm.email,
-        currency: editForm.currency,
       });
 
       // Show toast notification
@@ -411,20 +445,52 @@ export function Profile() {
                 <div className="flex items-center gap-3">
                   <Moon className="w-5 h-5 text-[#717182] dark:text-[#A78BFA]" />
                   <div>
-                    <p className="text-base text-[#0A0A0A] dark:text-white">Dark Mode</p>
-                    <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">Toggle dark theme</p>
+                    <p className="text-base text-[#0A0A0A] dark:text-white">Theme</p>
+                    <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+                      {isSystemMode ? 'System preference' : isDarkMode ? 'Dark mode' : 'Light mode'}
+                    </p>
                   </div>
                 </div>
-                <button
-                  onClick={toggleDarkMode}
-                  className={`w-11 h-6 rounded-full flex items-center px-0.5 transition-all ${
-                    isDarkMode 
-                      ? "bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] justify-end shadow-[#6366F1]/30" 
-                      : "bg-[#CBCED4] justify-start"
-                  }`}
-                >
-                  <div className="w-5 h-5 bg-white rounded-full shadow-sm" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* System/Auto mode button */}
+                  <button
+                    onClick={setSystemMode}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isSystemMode 
+                        ? "bg-[#6366F1] text-white shadow-md" 
+                        : "bg-[#F3F3F5] dark:bg-[#27272A] text-[#717182] dark:text-[#A1A1AA] hover:bg-[#ECECF0] dark:hover:bg-[#3F3F46]"
+                    }`}
+                    title="Follow system theme"
+                  >
+                    <Monitor className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Light mode button */}
+                  <button
+                    onClick={() => !isSystemMode && !isDarkMode ? null : toggleDarkMode()}
+                    className={`p-2 rounded-lg transition-colors ${
+                      !isSystemMode && !isDarkMode
+                        ? "bg-[#6366F1] text-white shadow-md" 
+                        : "bg-[#F3F3F5] dark:bg-[#27272A] text-[#717182] dark:text-[#A1A1AA] hover:bg-[#ECECF0] dark:hover:bg-[#3F3F46]"
+                    }`}
+                    title="Light mode"
+                  >
+                    <Sun className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Dark mode button */}
+                  <button
+                    onClick={() => !isSystemMode && isDarkMode ? null : toggleDarkMode()}
+                    className={`p-2 rounded-lg transition-colors ${
+                      !isSystemMode && isDarkMode
+                        ? "bg-[#6366F1] text-white shadow-md" 
+                        : "bg-[#F3F3F5] dark:bg-[#27272A] text-[#717182] dark:text-[#A1A1AA] hover:bg-[#ECECF0] dark:hover:bg-[#3F3F46]"
+                    }`}
+                    title="Dark mode"
+                  >
+                    <Moon className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="h-px bg-black/10 dark:bg-white/10" />
@@ -545,6 +611,15 @@ export function Profile() {
           >
             <LogOut className="w-4 h-4 text-[#D4183D] dark:text-[#F87171]" />
             <span className="text-sm text-[#D4183D] dark:text-[#F87171]">Sign Out</span>
+          </button>
+
+          {/* Delete Account */}
+          <button
+            onClick={handleDeleteAccount}
+            className="w-full h-9 bg-white dark:bg-[#18181B] border border-red-300 dark:border-red-600 rounded-lg flex items-center justify-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <span className="text-sm text-red-600 dark:text-red-400">Delete Account</span>
           </button>
 
           {/* Sign Out Dialog */}
@@ -893,6 +968,112 @@ export function Profile() {
                     >
                       Got it
                     </button>
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* Delete Account Dialog */}
+          <AnimatePresence>
+            {showDeleteAccountDialog && (
+              <>
+                <motion.div
+                  className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50"
+                  initial={shouldAnimate ? "hidden" : false}
+                  animate="visible"
+                  exit="exit"
+                  variants={overlayVariants}
+                  onClick={handleDeleteDialogClose}
+                />
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+                  <motion.div
+                    className="bg-white dark:bg-[#18181B] border border-red-300 dark:border-red-600 rounded-[14px] w-full max-w-md max-h-[90vh] overflow-y-auto pointer-events-auto"
+                    initial={shouldAnimate ? "hidden" : false}
+                    animate="visible"
+                    exit="exit"
+                    variants={modalVariants}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Delete Account</h3>
+                          <p className="text-sm text-[#717182] dark:text-[#A1A1AA]">This action cannot be undone</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 mb-6">
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          <p className="text-sm text-red-700 dark:text-red-300">
+                            <strong>Warning:</strong> Deleting your account will permanently remove:
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-red-600 dark:text-red-400">
+                            <li>• All your financial data and transactions</li>
+                            <li>• Budget and category information</li>
+                            <li>• Account settings and preferences</li>
+                            <li>• All associated data</li>
+                          </ul>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-[#0A0A0A] dark:text-white mb-2">
+                              Enter your password to confirm:
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showDeletePassword ? 'text' : 'password'}
+                                value={deleteAccountForm.password}
+                                onChange={(e) => setDeleteAccountForm(prev => ({ ...prev, password: e.target.value }))}
+                                placeholder="Your current password"
+                                className="w-full h-10 px-3 pr-10 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] border border-transparent focus:border-red-500 dark:focus:border-red-400 focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowDeletePassword(!showDeletePassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#717182] dark:text-[#A1A1AA] hover:text-[#0A0A0A] dark:hover:text-white transition-colors"
+                              >
+                                {showDeletePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-[#0A0A0A] dark:text-white mb-2">
+                              Type <strong>"DELETE"</strong> to confirm:
+                            </label>
+                            <input
+                              type="text"
+                              value={deleteAccountForm.confirmText}
+                              onChange={(e) => setDeleteAccountForm(prev => ({ ...prev, confirmText: e.target.value }))}
+                              placeholder="Type DELETE"
+                              className="w-full h-10 px-3 bg-[#F3F3F5] dark:bg-[#27272A] rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder:text-[#717182] dark:placeholder:text-[#71717A] border border-transparent focus:border-red-500 dark:focus:border-red-400 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleDeleteDialogClose}
+                          disabled={isDeleting}
+                          className="flex-1 h-10 bg-white dark:bg-[#27272A] border border-black/10 dark:border-white/10 text-[#0A0A0A] dark:text-white text-sm rounded-lg hover:bg-[#F3F3F5] dark:hover:bg-[#18181B] transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={confirmDeleteAccount}
+                          disabled={isDeleting || deleteAccountForm.password.length < 8 || deleteAccountForm.confirmText !== "DELETE"}
+                          className="flex-1 h-10 bg-red-600 hover:bg-red-700 disabled:bg-red-400 dark:disabled:bg-red-800 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete Account'}
+                        </button>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
               </>

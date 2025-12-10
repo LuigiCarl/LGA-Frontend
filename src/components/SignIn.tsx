@@ -1,30 +1,43 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link, Navigate } from 'react-router';
 import { Eye, EyeOff, Check, X, User, Mail, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useTerms } from '../context/TermsContext';
 import { FloatingInput } from './ui/floating-input';
 import { LoadingButton } from './ui/loading-button';
+import { BeamsBackground } from './ui/beams-background';
 
 export function SignIn() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, isAuthenticated, loading } = useAuth();
+  const { showTermsModal } = useTerms();
   const [isSignUp, setIsSignUp] = useState(false);
+
+  // Redirect to dashboard if already authenticated
+  if (!loading && isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   // Form fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // UI states
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
     password?: string;
     passwordConfirmation?: string;
+    terms?: string;
   }>({});
 
   // Validation
@@ -54,6 +67,10 @@ export function SignIn() {
         newErrors.passwordConfirmation = 'Please confirm your password';
       } else if (password !== passwordConfirmation) {
         newErrors.passwordConfirmation = 'Passwords do not match';
+      }
+
+      if (!acceptTerms) {
+        newErrors.terms = 'Please accept the Terms and Conditions';
       }
     }
 
@@ -95,7 +112,7 @@ export function SignIn() {
       if (isSignUp) {
         await register(name, email, password, passwordConfirmation);
       } else {
-        await login(email, password);
+        await login(email, password, rememberMe);
       }
       navigate('/dashboard');
     } catch (error: any) {
@@ -115,45 +132,50 @@ export function SignIn() {
     setEmail('');
     setPassword('');
     setPasswordConfirmation('');
+    setRememberMe(false);
+    setAcceptTerms(false);
     setShowPassword(false);
     setShowPasswordConfirmation(false);
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex flex-col items-center pt-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 flex flex-col items-center py-4 px-4 relative overflow-hidden">
+      {/* Animated Beams Background */}
+      <BeamsBackground />
+      
       {/* Header */}
-      <div className="w-full max-w-[448px] mb-6">
-        <div className="flex justify-center mb-3">
+      <div className="relative z-10 w-full max-w-[448px] mb-4">
+        <div className="flex justify-center mb-2">
           <img 
             src="/icon.png" 
             alt="FinanEase Logo" 
-            className="w-24 h-24 object-contain"
+            className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl"
           />
         </div>
         <div className="text-center">
-          <h1 className="text-[30px] leading-9 text-[#0A0A0A] dark:text-white mb-2">
+          <h1 className="text-[24px] md:text-[28px] leading-7 md:leading-8 text-gray-800 dark:text-white mb-1 font-bold drop-shadow-lg">
             FinanEase
           </h1>
-          <p className="text-base leading-6 text-[#717182] dark:text-[#A1A1AA]">
+          <p className="text-sm md:text-base leading-5 md:leading-6 text-gray-600 dark:text-gray-200 drop-shadow-md">
             Manage your finances with ease
           </p>
         </div>
       </div>
 
       {/* Form Card */}
-      <div className="w-full max-w-[448px] bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] p-6 shadow-xl dark:shadow-[#6366F1]/10">
-        <div className="mb-6">
-          <h2 className="text-base leading-4 text-[#0A0A0A] dark:text-white mb-2">
+      <div className="relative z-10 w-full max-w-[448px] bg-white/80 dark:bg-black/20 backdrop-blur-xl border border-white/60 dark:border-white/20 rounded-[14px] p-4 md:p-6 shadow-2xl">
+        <div className="mb-4">
+          <h2 className="text-base leading-4 text-gray-800 dark:text-white mb-1">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </h2>
-          <p className="text-base leading-6 text-[#717182] dark:text-[#A1A1AA]">
+          <p className="text-sm leading-5 text-gray-600 dark:text-gray-300">
             {isSignUp
               ? 'Fill in your details to create a new account'
               : 'Enter your credentials to access your account'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Name Field (Sign Up Only) */}
           {isSignUp && (
             <FloatingInput
@@ -194,6 +216,8 @@ export function SignIn() {
                 setPassword(e.target.value);
                 if (errors.password) setErrors({ ...errors, password: undefined });
               }}
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => setIsPasswordFocused(false)}
               error={errors.password}
               required
               icon={<Lock className="w-4 h-4" />}
@@ -208,6 +232,30 @@ export function SignIn() {
                 </button>
               }
             />
+
+            {/* Security Reminder (Sign Up Only - Shows when password field is focused) */}
+            <AnimatePresence>
+              {isSignUp && isPasswordFocused && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 mt-0.5 text-amber-600 dark:text-amber-400">
+                        ⚠️
+                      </div>
+                      <div className="text-xs text-amber-700 dark:text-amber-300">
+                        <strong>Security Tip:</strong> Don't use your real email password here. Create a unique password for this budget tracker.
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Password Strength Indicator (Sign Up Only) */}
             {isSignUp && password && passwordStrength && (
@@ -294,6 +342,64 @@ export function SignIn() {
             </div>
           )}
 
+          {/* Terms and Conditions (Sign Up Only) */}
+          {isSignUp && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onChange={(e) => {
+                      setAcceptTerms(e.target.checked);
+                      if (errors.terms) {
+                        setErrors({ ...errors, terms: undefined });
+                      }
+                    }}
+                    className="w-4 h-4 text-[#6366F1] bg-white dark:bg-[#27272A] border-[#ECECF0] dark:border-[#27272A] rounded focus:ring-[#6366F1] dark:focus:ring-[#8B5CF6] focus:ring-2"
+                  />
+                </div>
+                <div className="text-sm">
+                  <label htmlFor="acceptTerms" className="text-[#0A0A0A] dark:text-white">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => showTermsModal(
+                        () => setAcceptTerms(true), // Auto-check checkbox when terms are accepted
+                        () => setAcceptTerms(false) // Uncheck if declined
+                      )}
+                      className="text-[#6366F1] hover:text-[#8B5CF6] hover:underline transition-colors"
+                    >
+                      Terms and Conditions
+                    </button>
+                  </label>
+                  {errors.terms && (
+                    <p className="text-xs text-[#D4183D] dark:text-[#F87171] mt-1">{errors.terms}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Remember Me (Sign In Only) */}
+          {!isSignUp && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center h-5">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-[#6366F1] bg-white dark:bg-[#27272A] border-[#ECECF0] dark:border-[#27272A] rounded focus:ring-[#6366F1] dark:focus:ring-[#8B5CF6] focus:ring-2"
+                />
+              </div>
+              <label htmlFor="rememberMe" className="text-sm text-[#0A0A0A] dark:text-white">
+                Remember me
+              </label>
+            </div>
+          )}
+
           <LoadingButton
             type="submit"
             isLoading={isLoading}
@@ -306,7 +412,7 @@ export function SignIn() {
       </div>
 
       {/* Toggle Mode Link */}
-      <div className="mt-6 text-center">
+      <div className="mt-4 text-center">
         <span className="text-sm text-[#717182] dark:text-[#A1A1AA]">
           {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
         </span>

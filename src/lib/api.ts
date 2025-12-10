@@ -247,8 +247,8 @@ export const profileAPI = {
     await api.put('/password', data);
   },
 
-  deleteAccount: async (): Promise<void> => {
-    await api.delete('/account');
+  deleteAccount: async (password: string): Promise<void> => {
+    await api.delete('/account', { data: { password } });
   },
 };
 

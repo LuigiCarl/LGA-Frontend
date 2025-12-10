@@ -1,54 +1,13 @@
-import { Navigate } from "react-router";
-import { useState, useRef, useEffect } from "react";
+import { Outlet } from "react-router";
+import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { MobileSidebar } from "./MobileSidebar";
 import { FloatingActionButton } from "./FloatingActionButton";
-import { useAuth } from "../context/AuthContext";
-import { KeepAliveOutlet } from "./KeepAliveOutlet";
-import { useScrollRestoration } from "../context/KeepAliveContext";
-import { preloadAllMainRoutes } from "../lib/routePreloader";
 
 export function RootLayout() {
-  const { isAuthenticated, loading } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const mainContentRef = useRef<HTMLDivElement>(null);
-  
-  // Restore scroll position when navigating back
-  useScrollRestoration(mainContentRef as React.RefObject<HTMLElement>);
-  
-  // Preload all main routes after initial render
-  useEffect(() => {
-    if (isAuthenticated) {
-      // Delay preloading to not block initial render
-      const timer = setTimeout(() => {
-        preloadAllMainRoutes();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated]);
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative mx-auto mb-4">
-            <div className="w-16 h-16 rounded-full border-4 border-[#6366F1]/20 dark:border-[#6366F1]/30"></div>
-            <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-[#6366F1] animate-spin"></div>
-          </div>
-          <p className="text-[#717182] dark:text-[#A1A1AA]">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect to sign in if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <div className="flex h-screen bg-white dark:bg-[#0A0A0A] overflow-hidden">
@@ -64,27 +23,23 @@ export function RootLayout() {
         />
       </div>
       
-      {/* Main Content - With left margin to account for fixed sidebar */}
-      <div 
-        ref={mainContentRef}
-        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-          isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
-        }`}
-      >
-        <KeepAliveOutlet 
-          max={10}
-          exclude={['/dashboard/admin']} // Don't cache admin page for security
-        />
-      </div>
-      
-      {/* Floating Action Button */}
-      <FloatingActionButton />
-      
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar Overlay */}
       <MobileSidebar 
         isOpen={isMobileSidebarOpen} 
         onClose={() => setIsMobileSidebarOpen(false)} 
       />
+      
+      {/* Main Content - With left margin to account for fixed sidebar */}
+      <div 
+        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
+          isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
+        }`}
+      >
+        <Outlet />
+      </div>
+      
+      {/* Floating Action Button */}
+      <FloatingActionButton />
       
       {/* Mobile Navigation */}
       <div className="lg:hidden">

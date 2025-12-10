@@ -22,7 +22,7 @@ export function ProcessingOverlay({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.9 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-full px-4 py-2 shadow-lg flex items-center gap-2"
+          className="fixed top-20 inset-x-0 mx-auto w-fit z-50 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-full px-4 py-2 shadow-lg flex items-center justify-center gap-2"
         >
           <Loader2 className="w-4 h-4 text-[#6366F1] animate-spin" />
           <span className="text-sm text-[#6366F1] font-medium">{message}</span>

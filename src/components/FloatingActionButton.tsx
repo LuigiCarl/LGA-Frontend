@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Plus, X, Receipt, PieChart, Tag, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AddTransaction } from './AddTransaction';
 import { AddCategory } from './AddCategory';
 import { AddAccount } from './AddAccount';
@@ -162,7 +163,7 @@ export function FloatingActionButton() {
   return (
     <>
       {/* Floating Action Button - Only on mobile/tablet */}
-      <div
+      <motion.div
         ref={buttonRef}
         className="fixed z-40 lg:hidden"
         style={{
@@ -170,46 +171,100 @@ export function FloatingActionButton() {
           bottom: `${position.y}px`,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+          delay: 0.3
+        }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
         {/* Menu Items - Dynamically positioned */}
-        {isOpen && (
-          <div 
-            className={`absolute space-y-2 min-w-[200px] ${
-              menuPosition.showAbove ? 'bottom-16 mb-2' : 'top-16 mt-2'
-            } ${
-              menuPosition.extendsRight ? 'left-0' : 'right-0'
-            }`}
-          >
-            {menuItems.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleItemClick(item)}
-                  className="w-full h-12 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] shadow-lg flex items-center gap-3 px-4 hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
-                >
-                  <Icon className="w-5 h-5 text-[#0A0A0A] dark:text-white" />
-                  <span className="text-sm text-[#0A0A0A] dark:text-white">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div 
+              className={`absolute space-y-2 min-w-[200px] ${
+                menuPosition.showAbove ? 'bottom-16 mb-2' : 'top-16 mt-2'
+              } ${
+                menuPosition.extendsRight ? 'left-0' : 'right-0'
+              }`}
+              initial={{ opacity: 0, scale: 0.3, y: menuPosition.showAbove ? 10 : -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.3, y: menuPosition.showAbove ? 10 : -10 }}
+              transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 25,
+                duration: 0.2
+              }}
+            >
+              {menuItems.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.button
+                    key={index}
+                    onClick={() => handleItemClick(item)}
+                    className="w-full h-12 bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/10 rounded-[14px] shadow-lg flex items-center gap-3 px-4 hover:bg-[#F3F3F5] dark:hover:bg-[#27272A] transition-colors"
+                    initial={{ opacity: 0, x: menuPosition.extendsRight ? -20 : 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: index * 0.05,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20
+                    }}
+                    whileHover={{ scale: 1.02, x: menuPosition.extendsRight ? 4 : -4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Icon className="w-5 h-5 text-[#0A0A0A] dark:text-white" />
+                    <span className="text-sm text-[#0A0A0A] dark:text-white">{item.label}</span>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main FAB Button */}
-        <button
+        <motion.button
           onClick={handleButtonClick}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
           className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all touch-none select-none ${
             isOpen
-              ? 'bg-[#717182] dark:bg-[#27272A] rotate-45'
+              ? 'bg-[#717182] dark:bg-[#27272A]'
               : 'bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] shadow-[#6366F1]/30'
           }`}
+          animate={{ 
+            rotate: isOpen ? 45 : 0,
+            boxShadow: isOpen 
+              ? '0 8px 32px rgba(0, 0, 0, 0.12)' 
+              : '0 8px 32px rgba(99, 102, 241, 0.3)'
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 20
+          }}
+          whileHover={{ 
+            scale: 1.1,
+            boxShadow: isOpen 
+              ? '0 12px 40px rgba(0, 0, 0, 0.15)' 
+              : '0 12px 40px rgba(99, 102, 241, 0.4)'
+          }}
+          whileTap={{ scale: 0.9 }}
         >
-          {isOpen ? <X className="w-6 h-6 text-white" /> : <Plus className="w-6 h-6 text-white" />}
-        </button>
-      </div>
+          <motion.div
+            animate={{ rotate: isOpen ? 45 : 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          >
+            {isOpen ? <X className="w-6 h-6 text-white" /> : <Plus className="w-6 h-6 text-white" />}
+          </motion.div>
+        </motion.button>
+      </motion.div>
 
       {/* Add Transaction Modal */}
       <AddTransaction

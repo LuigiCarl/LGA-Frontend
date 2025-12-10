@@ -22,9 +22,10 @@ import { AnimatePresence, motion, overlayVariants, modalVariants, useMotionSafe 
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
@@ -66,18 +67,20 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   return (
     <div className="w-full h-full bg-white dark:bg-[#09090B] border-r border-black/10 dark:border-white/10 flex flex-col overflow-hidden relative">
-      {/* Collapse Toggle Button */}
-      <button
-        onClick={onToggle}
-        className="absolute -right-3 top-8 z-40 w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-lg shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/40 transition-all"
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {isCollapsed ? (
-          <ChevronRight className="w-4 h-4 text-white" />
-        ) : (
-          <ChevronLeft className="w-4 h-4 text-white" />
-        )}
-      </button>
+      {/* Collapse Toggle Button - Hidden on mobile */}
+      {!isMobile && (
+        <button
+          onClick={onToggle}
+          className="absolute -right-3 top-8 z-40 w-6 h-6 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-lg shadow-[#6366F1]/30 hover:shadow-xl hover:shadow-[#6366F1]/40 transition-all"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4 text-white" />
+          ) : (
+            <ChevronLeft className="w-4 h-4 text-white" />
+          )}
+        </button>
+      )}
 
       {/* Logo */}
       <div className="h-[88.8px] flex items-center gap-3 px-6 border-b border-black/10 dark:border-white/10 flex-shrink-0">

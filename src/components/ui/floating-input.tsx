@@ -54,6 +54,11 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
             ref={ref}
             className={cn(
               "peer w-full h-14 bg-[#F3F3F5] dark:bg-[#27272A] border rounded-lg text-sm text-[#0A0A0A] dark:text-white placeholder-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#6366F1]/50",
+              "autofill:shadow-[0_0_0px_1000px_#F3F3F5_inset] dark:autofill:shadow-[0_0_0px_1000px_#27272A_inset]",
+              "[&:-webkit-autofill]:text-[#0A0A0A] [&:-webkit-autofill:hover]:text-[#0A0A0A] [&:-webkit-autofill:focus]:text-[#0A0A0A] [&:-webkit-autofill:active]:text-[#0A0A0A]",
+              "[&:-internal-autofill-selected]:text-[#0A0A0A] [&:-internal-autofill-previewed]:text-[#0A0A0A]",
+              "dark:[&:-webkit-autofill]:text-white dark:[&:-webkit-autofill:hover]:text-white dark:[&:-webkit-autofill:focus]:text-white dark:[&:-webkit-autofill:active]:text-white",
+              "dark:[&:-internal-autofill-selected]:text-white dark:[&:-internal-autofill-previewed]:text-white",
               icon ? "pl-10 pr-4" : "px-4",
               endIcon ? "pr-12" : "",
               error
@@ -64,6 +69,10 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
               "pt-5 pb-2",
               className
             )}
+            style={{
+              WebkitTextFillColor: 'inherit',
+              color: 'inherit',
+            }}
             placeholder={label}
             onFocus={handleFocus}
             onBlur={handleBlur}
