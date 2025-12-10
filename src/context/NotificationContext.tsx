@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useMemo, useCallback, memo, useEffect, useRef } from "react";
-import { X, Check, Info, AlertCircle, Bell } from "lucide-react";
+import { X, Check, Info, AlertCircle, Bell, Send, ArrowDown } from "lucide-react";
 import { notificationsAPI } from "../lib/api";
+import { useAuth } from "./AuthContext";
 
 interface Notification {
   id: number;
@@ -9,6 +10,9 @@ interface Notification {
   date: string;
   type: "info" | "success" | "warning" | "error";
   read: boolean;
+  direction: "sent" | "received";
+  source: "user" | "admin";
+  created_by?: number;
 }
 
 // Track read notification IDs in localStorage to persist across sessions
@@ -66,20 +70,76 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const fetchNotifications = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      if (!token) return;
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!token || !user) return;
       
       const data = await notificationsAPI.getRecent(20);
       const readIds = readIdsRef.current;
       
       // Map API response to local notification format
-      const mappedNotifications: Notification[] = (Array.isArray(data) ? data : []).map((n: any) => ({
-        id: n.id,
-        title: n.title,
-        description: n.description,
-        date: formatRelativeDate(n.sent_at || n.created_at),
-        type: n.type || 'info',
-        read: readIds.has(n.id), // Check if user has read this notification
-      }));
+      const mappedNotifications: Notification[] = (Array.isArray(data) ? data : [])
+        .filter((n: any) => {
+          // Determine if this is a feedback notification
+          const isFeedbackNotification = n.title?.includes('feedback') || n.title?.includes('Feedback');
+          
+          // Privacy filtering: Regular users should only see:
+          // 1. Their own feedback notifications
+          // 2. Admin broadcast notifications (non-feedback)
+          if (user.role !== 'admin' && isFeedbackNotification) {
+            // Only show feedback notifications if the user created them
+            return n.created_by === user.id;
+          }
+          
+          // Admin sees all notifications, users see non-feedback notifications
+          return true;
+        })
+        .map((n: any) => {
+        // Determine if this is a feedback notification or admin broadcast
+        const isFeedbackNotification = n.title?.includes('feedback') || n.title?.includes('Feedback');
+        const isAdminBroadcast = !isFeedbackNotification;
+        
+        // For admins: feedback notifications are "received", broadcasts are "sent"
+        // For users: feedback notifications are "sent", broadcasts are "received"
+        let direction: "sent" | "received";
+        let source: "user" | "admin";
+        
+        if (user.role === 'admin') {
+          if (isFeedbackNotification) {
+            direction = "received"; // Admin receives feedback from users
+            source = "user";
+          } else {
+            direction = "sent"; // Admin sent broadcast
+            source = "admin";
+          }
+        } else {
+          if (isFeedbackNotification && n.created_by === user.id) {
+            direction = "sent"; // User sent their own feedback
+            source = "user";
+          } else {
+            direction = "received"; // User receives admin broadcasts
+            source = "admin";
+          }
+        }
+        
+        // Adjust title based on direction for feedback notifications
+        let displayTitle = n.title;
+        if (isFeedbackNotification && direction === "sent") {
+          // For sent feedback, show "Feedback" instead of "New Feedback Received"
+          displayTitle = "Feedback";
+        }
+        
+        return {
+          id: n.id,
+          title: displayTitle,
+          description: n.description,
+          date: formatRelativeDate(n.sent_at || n.created_at),
+          type: n.type || 'info',
+          read: readIds.has(n.id),
+          direction,
+          source,
+          created_by: n.created_by
+        };
+      });
       
       setNotifications(mappedNotifications);
       lastFetchRef.current = Date.now();
@@ -206,9 +266,30 @@ const NotificationItem = memo(({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h4 className="text-sm text-[#0A0A0A] dark:text-white">
-            {notification.title}
-          </h4>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h4 className="text-sm text-[#0A0A0A] dark:text-white">
+              {notification.title}
+            </h4>
+            {notification.direction && (
+              <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${
+                notification.direction === 'sent'
+                  ? 'bg-[#10B981]/10 text-[#10B981] dark:bg-[#10B981]/20'
+                  : 'bg-[#6366F1]/10 text-[#6366F1] dark:bg-[#6366F1]/20'
+              }`}>
+                {notification.direction === 'sent' ? (
+                  <>
+                    <Send className="w-3 h-3" />
+                    Sent
+                  </>
+                ) : (
+                  <>
+                    <ArrowDown className="w-3 h-3" />
+                    Received
+                  </>
+                )}
+              </span>
+            )}
+          </div>
           {!notification.read && (
             <div className="w-2 h-2 bg-[#6366F1] dark:bg-[#A78BFA] rounded-full flex-shrink-0 mt-1" />
           )}

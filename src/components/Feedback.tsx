@@ -24,6 +24,7 @@ export function Feedback() {
     setError('');
 
     try {
+      // NOTE: Backend should send "New Feedback Received" notifications to admin users, not regular users
       await feedbackAPI.submit({
         subject,
         message,

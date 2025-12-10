@@ -16,14 +16,18 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
     const [hasValue, setHasValue] = React.useState(false);
     const inputId = id || React.useId();
 
+
+
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
+      // Call the parent's onFocus handler if provided
       props.onFocus?.(e);
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
       setHasValue(!!e.target.value);
+      // Call the parent's onBlur handler if provided
       props.onBlur?.(e);
     };
 
@@ -32,11 +36,84 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
       props.onChange?.(e);
     };
 
+    // Check for autofilled values and handle controlled value changes
     React.useEffect(() => {
       if (props.value !== undefined) {
         setHasValue(!!props.value);
       }
     }, [props.value]);
+
+    // Enhanced autofill detection for password fields
+    React.useEffect(() => {
+      if (!ref || !('current' in ref) || !ref.current) return;
+      
+      const input = ref.current as HTMLInputElement;
+      
+      const checkAutofill = () => {
+        if (input && input.value) {
+          setHasValue(true);
+        }
+      };
+      
+      // Multiple detection strategies for different browsers
+      const timers: NodeJS.Timeout[] = [];
+      
+      // Immediate check
+      checkAutofill();
+      
+      // Delayed checks for autofill - more frequent initially
+      timers.push(setTimeout(checkAutofill, 10));
+      timers.push(setTimeout(checkAutofill, 50));
+      timers.push(setTimeout(checkAutofill, 100));
+      timers.push(setTimeout(checkAutofill, 200));
+      timers.push(setTimeout(checkAutofill, 500));
+      timers.push(setTimeout(checkAutofill, 1000));
+      
+      // Animation event listener for CSS-triggered autofill detection
+      const handleAnimationStart = (e: AnimationEvent) => {
+        if (e.animationName === 'autofill') {
+          setTimeout(checkAutofill, 10);
+        }
+      };
+      
+      // MutationObserver to detect attribute changes (some browsers set autofill attributes)
+      const observer = new MutationObserver(() => {
+        setTimeout(checkAutofill, 10);
+      });
+      
+      observer.observe(input, {
+        attributes: true,
+        attributeFilter: ['value', 'class', 'style']
+      });
+      
+      // Focus event to catch autofill on focus
+      const handleFocusAutofill = () => {
+        setTimeout(checkAutofill, 10);
+      };
+      
+      input.addEventListener('animationstart', handleAnimationStart);
+      input.addEventListener('focus', handleFocusAutofill);
+      
+      return () => {
+        timers.forEach(timer => clearTimeout(timer));
+        observer.disconnect();
+        input.removeEventListener('animationstart', handleAnimationStart);
+        input.removeEventListener('focus', handleFocusAutofill);
+      };
+    }, [ref, type]);
+
+    // Check for autofill on component mount - additional safety check
+    React.useEffect(() => {
+      if (ref && 'current' in ref && ref.current) {
+        const input = ref.current as HTMLInputElement;
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          if (input.value) {
+            setHasValue(true);
+          }
+        });
+      }
+    }, [ref]);
 
     const isActive = isFocused || hasValue;
 
@@ -73,11 +150,20 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
               WebkitTextFillColor: 'inherit',
               color: 'inherit',
             }}
-            placeholder={label}
+            placeholder=""
+            {...props}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={handleChange}
-            {...props}
+            onInput={(e) => {
+              // Handle autofill detection via input event
+              const target = e.target as HTMLInputElement;
+              if (target.value && !hasValue) {
+                setHasValue(true);
+              }
+              // Call parent onInput if provided
+              props.onInput?.(e);
+            }}
           />
           <label
             htmlFor={inputId}
