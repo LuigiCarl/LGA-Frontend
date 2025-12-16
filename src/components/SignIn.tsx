@@ -14,11 +14,6 @@ export function SignIn() {
   const { showTermsModal } = useTerms();
   const [isSignUp, setIsSignUp] = useState(false);
 
-  // Redirect to dashboard if already authenticated
-  if (!loading && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   // Form fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,6 +34,11 @@ export function SignIn() {
     passwordConfirmation?: string;
     terms?: string;
   }>({});
+
+  // Redirect to dashboard if already authenticated (AFTER all hooks are defined)
+  if (!loading && isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   // Validation
   const validateForm = () => {
