@@ -14,36 +14,39 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import { PWAProvider } from './context/PWAContext';
 import { TermsProvider } from './context/TermsContext';
 import { ReducedMotionProvider } from './components/ui/motion';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReducedMotionProvider>
-        <DarkModeProvider>
-        <CurrencyProvider>
-          <PWAProvider>
-            <ToastProvider>
-              <TermsProvider>
-                <AuthProvider>
-                  <MonthProvider>
-                    <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
-                      <EmojiProvider>
-                        <NotificationProvider>
-                          <RouterProvider router={router} />
-                        </NotificationProvider>
-                      </EmojiProvider>
-                    </KeepAliveProvider>
-                  </MonthProvider>
-                </AuthProvider>
-              </TermsProvider>
-            </ToastProvider>
-          </PWAProvider>
-        </CurrencyProvider>
-      </DarkModeProvider>
-      </ReducedMotionProvider>
-      {/* Only show devtools in development */}
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ReducedMotionProvider>
+          <DarkModeProvider>
+          <CurrencyProvider>
+            <PWAProvider>
+              <ToastProvider>
+                <TermsProvider>
+                  <AuthProvider>
+                    <MonthProvider>
+                      <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
+                        <EmojiProvider>
+                          <NotificationProvider>
+                            <RouterProvider router={router} />
+                          </NotificationProvider>
+                        </EmojiProvider>
+                      </KeepAliveProvider>
+                    </MonthProvider>
+                  </AuthProvider>
+                </TermsProvider>
+              </ToastProvider>
+            </PWAProvider>
+          </CurrencyProvider>
+        </DarkModeProvider>
+        </ReducedMotionProvider>
+        {/* Only show devtools in development */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

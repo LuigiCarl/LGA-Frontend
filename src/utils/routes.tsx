@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import { Suspense } from 'react';
 import { AdminRoute } from '../components/AdminRoute';
+import ErrorPage from '../components/ErrorPage';
 
 // Import lazy components with preload capability
 import {
@@ -40,29 +41,37 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <LazyComponent Component={LazySignIn} />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/forgot-password',
     element: <LazyComponent Component={LazyForgotPassword} />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/reset-password',
     element: <LazyComponent Component={LazyForgotPassword} />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/dashboard',
     element: <LazyComponent Component={LazyRootLayout} />,
+    errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <LazyComponent Component={LazyDashboard} /> },
-      { path: 'transactions', element: <LazyComponent Component={LazyTransactions} /> },
-      { path: 'add', element: <LazyComponent Component={LazyAddTransaction} /> },
-      { path: 'budgets', element: <LazyComponent Component={LazyBudgets} /> },
-      { path: 'categories', element: <LazyComponent Component={LazyCategories} /> },
-      { path: 'accounts', element: <LazyComponent Component={LazyAccounts} /> },
-      { path: 'profile', element: <LazyComponent Component={LazyProfile} /> },
-      { path: 'feedback', element: <LazyComponent Component={LazyFeedback} /> },
-      { path: 'admin', element: <AdminRoute><LazyComponent Component={LazyAdmin} /></AdminRoute> },
+      { index: true, element: <LazyComponent Component={LazyDashboard} />, errorElement: <ErrorPage /> },
+      { path: 'transactions', element: <LazyComponent Component={LazyTransactions} />, errorElement: <ErrorPage /> },
+      { path: 'add', element: <LazyComponent Component={LazyAddTransaction} />, errorElement: <ErrorPage /> },
+      { path: 'budgets', element: <LazyComponent Component={LazyBudgets} />, errorElement: <ErrorPage /> },
+      { path: 'categories', element: <LazyComponent Component={LazyCategories} />, errorElement: <ErrorPage /> },
+      { path: 'accounts', element: <LazyComponent Component={LazyAccounts} />, errorElement: <ErrorPage /> },
+      { path: 'profile', element: <LazyComponent Component={LazyProfile} />, errorElement: <ErrorPage /> },
+      { path: 'feedback', element: <LazyComponent Component={LazyFeedback} />, errorElement: <ErrorPage /> },
+      { path: 'admin', element: <AdminRoute><LazyComponent Component={LazyAdmin} /></AdminRoute>, errorElement: <ErrorPage /> },
     ],
+  },
+  {
+    path: '*',
+    errorElement: <ErrorPage />,
   },
 ]);
 
