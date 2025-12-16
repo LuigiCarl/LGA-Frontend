@@ -32,7 +32,7 @@ export function Error403() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#0A0014] via-[#1A0A28] to-[#0A0014] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-100 via-purple-100 to-pink-50 dark:from-[#0A0014] dark:via-[#1A0A28] dark:to-[#0A0014] overflow-hidden flex items-center justify-center">
       {/* Hexagonal Pattern Background */}
       <div 
         className="absolute inset-0 opacity-10"
@@ -141,10 +141,10 @@ export function Error403() {
 
         {/* Primary Message */}
         <div className="mb-6 space-y-3">
-          <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
             RESTRICTED ZONE
           </h2>
-          <div className="flex items-center justify-center gap-2 text-purple-400 font-mono text-sm">
+          <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 font-mono text-sm">
             <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
             <span>SECURITY_LEVEL: CLASSIFIED</span>
             <span className="w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse" />
@@ -152,9 +152,9 @@ export function Error403() {
         </div>
 
         {/* Secondary Message */}
-        <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
           Your access credentials are insufficient for this sector. 
-          <span className="text-purple-400"> This area requires elevated permissions.</span>
+          <span className="text-purple-600 dark:text-purple-400"> This area requires elevated permissions.</span>
           <br />
           If you believe this is an error, contact your system administrator.
         </p>
@@ -203,7 +203,7 @@ export function Error403() {
 
         {/* Security Notice */}
         <div className="mt-12 p-4 border border-purple-500/30 rounded-lg bg-purple-500/5 backdrop-blur-sm max-w-2xl mx-auto">
-          <p className="text-purple-300 text-sm">
+          <p className="text-purple-700 dark:text-purple-300 text-sm">
             <Lock className="w-4 h-4 inline mr-2" />
             <span className="font-bold">Security Notice:</span> This incident has been logged. 
             Unauthorized access attempts are monitored and reported.

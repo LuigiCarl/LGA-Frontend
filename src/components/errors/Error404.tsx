@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { Home, ArrowLeft, Search, Zap } from 'lucide-react';
+import { Home, ArrowLeft, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /**
@@ -41,7 +41,7 @@ export function Error404() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#0A0B0F] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-gray-50 dark:bg-[#0A0B0F] overflow-hidden flex items-center justify-center">
       {/* Animated Grid Background */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -111,10 +111,10 @@ export function Error404() {
 
         {/* Primary Message */}
         <div className="mb-6 space-y-2">
-          <h2 className="text-2xl md:text-4xl font-bold text-white">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white">
             <span className="inline-block animate-glitch">LOCATION NOT FOUND</span>
           </h2>
-          <div className="flex items-center justify-center gap-2 text-cyan-400 font-mono text-sm">
+          <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-cyan-400 font-mono text-sm">
             <Zap className="w-4 h-4 animate-pulse" />
             <span>QUANTUM_VOID_DETECTED</span>
             <Zap className="w-4 h-4 animate-pulse" />
@@ -122,9 +122,9 @@ export function Error404() {
         </div>
 
         {/* Secondary Message */}
-        <p className="text-gray-400 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-400 text-lg mb-12 max-w-xl mx-auto leading-relaxed">
           The coordinates you requested have drifted beyond the known data matrix. 
-          <span className="text-cyan-400"> Recalibrating navigation systems...</span>
+          <span className="text-blue-600 dark:text-cyan-400"> Recalibrating navigation systems...</span>
         </p>
 
         {/* Action Buttons */}
@@ -142,7 +142,7 @@ export function Error404() {
 
           <button
             onClick={() => navigate(-1)}
-            className="group px-8 py-4 border-2 border-cyan-500/50 text-cyan-400 font-semibold rounded-lg transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+            className="group px-8 py-4 border-2 border-blue-500/50 dark:border-cyan-500/50 text-blue-600 dark:text-cyan-400 font-semibold rounded-lg transition-all duration-300 hover:border-blue-500 dark:hover:border-cyan-400 hover:bg-blue-500/10 dark:hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] dark:hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
           >
             <span className="flex items-center gap-2">
               <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
@@ -152,8 +152,8 @@ export function Error404() {
         </div>
 
         {/* Status Indicator */}
-        <div className="mt-12 flex items-center justify-center gap-3 text-sm text-gray-500 font-mono">
-          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+        <div className="mt-12 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-500 font-mono">
+          <div className="w-2 h-2 bg-blue-500 dark:bg-cyan-400 rounded-full animate-pulse" />
           <span>SYSTEM_STATUS: OPERATIONAL</span>
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>

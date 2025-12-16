@@ -42,7 +42,7 @@ export function Error500() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#1A0A0A] via-[#0A0A0A] to-[#1A0A00] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-yellow-50 dark:from-[#1A0A0A] dark:via-[#0A0A0A] dark:to-[#1A0A00] overflow-hidden flex items-center justify-center">
       {/* Animated Warning Grid */}
       <div 
         className="absolute inset-0 opacity-10"
@@ -116,18 +116,18 @@ export function Error500() {
 
         {/* Primary Message */}
         <div className="mb-6 space-y-3">
-          <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
             NEURAL NETWORK FAILURE
           </h2>
-          <p className="text-red-400 font-semibold text-lg">
+          <p className="text-red-600 dark:text-red-400 font-semibold text-lg">
             Core systems experiencing critical malfunction
           </p>
         </div>
 
         {/* Secondary Message */}
-        <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
           Our quantum processors detected an anomaly in the matrix. 
-          <span className="text-yellow-400"> Emergency protocols are active.</span> 
+          <span className="text-orange-600 dark:text-yellow-400"> Emergency protocols are active.</span> 
           <br />
           We're working to restore stability.
         </p>

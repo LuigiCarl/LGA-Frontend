@@ -67,6 +67,11 @@ export const LazySignIn = lazyWithPreload(
   () => import('../components/SignIn').then((m) => ({ default: m.SignIn }))
 );
 
+export const LazyLandingPage = lazyWithPreload(
+  'LandingPage',
+  () => import('../components/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
+
 export const LazyForgotPassword = lazyWithPreload(
   'ForgotPassword',
   () => import('../components/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))

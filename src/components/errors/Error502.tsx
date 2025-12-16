@@ -44,7 +44,7 @@ export function Error502() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#0A1628] via-[#0F1419] to-[#0A1B2E] overflow-hidden flex items-center justify-center">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-sky-50 dark:from-[#0A1628] dark:via-[#0F1419] dark:to-[#0A1B2E] overflow-hidden flex items-center justify-center">
       {/* Network Grid Background */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -202,10 +202,10 @@ export function Error502() {
 
         {/* Primary Message */}
         <div className="mb-6 space-y-3">
-          <h2 className="text-3xl md:text-5xl font-bold text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]">
             GATEWAY TIMEOUT
           </h2>
-          <div className="flex items-center justify-center gap-2 text-sky-400 font-mono text-sm">
+          <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-sky-400 font-mono text-sm">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             <span>UPSTREAM_SERVER_UNREACHABLE</span>
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -213,9 +213,9 @@ export function Error502() {
         </div>
 
         {/* Secondary Message */}
-        <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
           The gateway between our servers has lost connection. 
-          <span className="text-sky-400"> Communication nodes are attempting to re-establish link.</span>
+          <span className="text-blue-600 dark:text-sky-400"> Communication nodes are attempting to re-establish link.</span>
           <br />
           This is usually temporary. Please try again in a moment.
         </p>

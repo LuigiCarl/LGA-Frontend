@@ -36,8 +36,16 @@ export function SignIn() {
   }>({});
 
   // Redirect to dashboard if already authenticated (AFTER all hooks are defined)
-  if (!loading && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  // Show loading spinner to prevent flash of sign-in form
+  if (loading || isAuthenticated) {
+    if (isAuthenticated) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0A0A0A]">
+        <div className="w-8 h-8 border-4 border-[#6366F1] dark:border-[#8B5CF6] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   // Validation

@@ -9,6 +9,7 @@ import { LazyComponent } from '../components/RouteComponents';
 import {
   LazyRootLayout,
   LazySignIn,
+  LazyLandingPage,
   LazyForgotPassword,
   LazyDashboard,
   LazyTransactions,
@@ -24,6 +25,11 @@ import {
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LazyComponent Component={LazyLandingPage} />,
+    errorElement: <ErrorPageRouter />,
+  },
+  {
+    path: '/signin',
     element: <LazyComponent Component={LazySignIn} />,
     errorElement: <ErrorPageRouter />,
   },
