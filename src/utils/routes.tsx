@@ -1,7 +1,9 @@
 import { createBrowserRouter } from 'react-router';
-import { Suspense } from 'react';
 import { AdminRoute } from '../components/AdminRoute';
-import ErrorPage from '../components/ErrorPage';
+import { ProtectedRoute } from '../components/ProtectedRoute';
+import { ErrorPageRouter } from '../components/errors';
+import { Error404, Error403, Error500, Error502 } from '../components/errors';
+import { LazyComponent } from '../components/RouteComponents';
 
 // Import lazy components with preload capability
 import {
@@ -19,59 +21,64 @@ import {
   LazyFeedback,
 } from '../lib/routePreloader';
 
-// Loading fallback component - optimized for fast render
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-screen bg-white dark:bg-[#0A0A0A]">
-    <div className="w-8 h-8 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
-  </div>
-);
-
-// Wrapper component for lazy loaded routes with Suspense
-const LazyComponent = ({
-  Component,
-}: {
-  Component: React.LazyExoticComponent<React.ComponentType<unknown>>;
-}) => (
-  <Suspense fallback={<LoadingFallback />}>
-    <Component />
-  </Suspense>
-);
-
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <LazyComponent Component={LazySignIn} />,
-    errorElement: <ErrorPage />,
+    errorElement: <ErrorPageRouter />,
   },
   {
     path: '/forgot-password',
     element: <LazyComponent Component={LazyForgotPassword} />,
-    errorElement: <ErrorPage />,
+    errorElement: <ErrorPageRouter />,
   },
   {
     path: '/reset-password',
     element: <LazyComponent Component={LazyForgotPassword} />,
-    errorElement: <ErrorPage />,
+    errorElement: <ErrorPageRouter />,
   },
   {
     path: '/dashboard',
-    element: <LazyComponent Component={LazyRootLayout} />,
-    errorElement: <ErrorPage />,
+    element: (
+      <ProtectedRoute>
+        <LazyComponent Component={LazyRootLayout} />
+      </ProtectedRoute>
+    ),
+    errorElement: <ErrorPageRouter />,
     children: [
-      { index: true, element: <LazyComponent Component={LazyDashboard} />, errorElement: <ErrorPage /> },
-      { path: 'transactions', element: <LazyComponent Component={LazyTransactions} />, errorElement: <ErrorPage /> },
-      { path: 'add', element: <LazyComponent Component={LazyAddTransaction} />, errorElement: <ErrorPage /> },
-      { path: 'budgets', element: <LazyComponent Component={LazyBudgets} />, errorElement: <ErrorPage /> },
-      { path: 'categories', element: <LazyComponent Component={LazyCategories} />, errorElement: <ErrorPage /> },
-      { path: 'accounts', element: <LazyComponent Component={LazyAccounts} />, errorElement: <ErrorPage /> },
-      { path: 'profile', element: <LazyComponent Component={LazyProfile} />, errorElement: <ErrorPage /> },
-      { path: 'feedback', element: <LazyComponent Component={LazyFeedback} />, errorElement: <ErrorPage /> },
-      { path: 'admin', element: <AdminRoute><LazyComponent Component={LazyAdmin} /></AdminRoute>, errorElement: <ErrorPage /> },
+      { index: true, element: <LazyComponent Component={LazyDashboard} />, errorElement: <ErrorPageRouter /> },
+      { path: 'transactions', element: <LazyComponent Component={LazyTransactions} />, errorElement: <ErrorPageRouter /> },
+      { path: 'add', element: <LazyComponent Component={LazyAddTransaction} />, errorElement: <ErrorPageRouter /> },
+      { path: 'budgets', element: <LazyComponent Component={LazyBudgets} />, errorElement: <ErrorPageRouter /> },
+      { path: 'categories', element: <LazyComponent Component={LazyCategories} />, errorElement: <ErrorPageRouter /> },
+      { path: 'accounts', element: <LazyComponent Component={LazyAccounts} />, errorElement: <ErrorPageRouter /> },
+      { path: 'profile', element: <LazyComponent Component={LazyProfile} />, errorElement: <ErrorPageRouter /> },
+      { path: 'feedback', element: <LazyComponent Component={LazyFeedback} />, errorElement: <ErrorPageRouter /> },
+      { path: 'admin', element: <AdminRoute><LazyComponent Component={LazyAdmin} /></AdminRoute>, errorElement: <ErrorPageRouter /> },
+      { path: '*', element: <Error404 /> }, // Catch-all for invalid dashboard routes
     ],
+  },
+  // Direct routes for testing error pages
+  {
+    path: '/error/403',
+    element: <Error403 />,
+  },
+  {
+    path: '/error/404',
+    element: <Error404 />,
+  },
+  {
+    path: '/error/500',
+    element: <Error500 />,
+  },
+  {
+    path: '/error/502',
+    element: <Error502 />,
   },
   {
     path: '*',
-    errorElement: <ErrorPage />,
+    element: <Error404 />,
+    errorElement: <ErrorPageRouter />,
   },
 ]);
 

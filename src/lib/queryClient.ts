@@ -1,4 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
+import { 
+  dashboardAPI, 
+  transactionsAPI, 
+  budgetsAPI, 
+  categoriesAPI, 
+  accountsAPI, 
+  adminAPI 
+} from './api';
 
 /**
  * React Query Client Configuration
@@ -230,7 +238,6 @@ export const clearAllCache = () => {
  */
 export const prefetchQueries = {
   dashboard: async () => {
-    const { dashboardAPI } = await import('./api');
     await Promise.all([
       queryClient.prefetchQuery({
         queryKey: queryKeys.dashboard.stats(),
@@ -251,7 +258,6 @@ export const prefetchQueries = {
   },
   
   transactions: async () => {
-    const { transactionsAPI } = await import('./api');
     await queryClient.prefetchQuery({
       queryKey: queryKeys.transactions.list({ page: 1, per_page: 15 }),
       queryFn: () => transactionsAPI.getAll({ page: 1, per_page: 15 }),
@@ -260,7 +266,6 @@ export const prefetchQueries = {
   },
   
   budgets: async () => {
-    const { budgetsAPI } = await import('./api');
     await queryClient.prefetchQuery({
       queryKey: queryKeys.budgets.list(),
       queryFn: () => budgetsAPI.getAll(),
@@ -269,7 +274,6 @@ export const prefetchQueries = {
   },
   
   categories: async () => {
-    const { categoriesAPI } = await import('./api');
     await queryClient.prefetchQuery({
       queryKey: queryKeys.categories.list(),
       queryFn: () => categoriesAPI.getAll(),
@@ -278,7 +282,6 @@ export const prefetchQueries = {
   },
   
   accounts: async () => {
-    const { accountsAPI } = await import('./api');
     await queryClient.prefetchQuery({
       queryKey: queryKeys.accounts.list(),
       queryFn: () => accountsAPI.getAll(),
@@ -287,7 +290,6 @@ export const prefetchQueries = {
   },
   
   admin: async () => {
-    const { adminAPI } = await import('./api');
     await Promise.all([
       queryClient.prefetchQuery({
         queryKey: queryKeys.admin.users(),
