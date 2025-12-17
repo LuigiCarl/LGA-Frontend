@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router';
-import { Eye, EyeOff, Check, X, User, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Check, X, User, Mail, Lock, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTerms } from '../context/TermsContext';
@@ -147,39 +147,59 @@ export function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 flex flex-col items-center py-4 px-4 relative overflow-hidden">
-      {/* Animated Beams Background */}
+    <div className="min-h-screen bg-white dark:bg-[#0A0A0A] flex flex-col items-center py-8 px-4 relative overflow-hidden">
+      {/* Animated Beams Background - Same as Landing Page */}
       <BeamsBackground />
       
+      {/* Floating Gradient Orbs - Same as Landing Page */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+      </div>
+
       {/* Header */}
-      <div className="relative z-10 w-full max-w-[448px] mb-4">
-        <div className="flex justify-center mb-2">
+      <div className="relative z-10 w-full max-w-[448px] mb-6">
+        <div className="flex justify-center mb-3">
           <img 
-            src="/icon.png" 
+            src="/icon.svg" 
             alt="FinanEase Logo" 
-            className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl"
+            className="w-16 h-16 md:w-20 md:h-20 object-contain"
           />
         </div>
         <div className="text-center">
-          <h1 className="text-[24px] md:text-[28px] leading-7 md:leading-8 text-gray-800 dark:text-white mb-1 font-bold drop-shadow-lg">
+          <h1 className="text-2xl md:text-3xl text-gray-900 dark:text-white mb-2 font-bold">
             FinanEase
           </h1>
-          <p className="text-sm md:text-base leading-5 md:leading-6 text-gray-600 dark:text-gray-200 drop-shadow-md">
-            Manage your finances with ease
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+            Simple, manual budget tracking with full privacy
           </p>
         </div>
       </div>
 
       {/* Form Card */}
-      <div className="relative z-10 w-full max-w-[448px] bg-white/80 dark:bg-black/20 backdrop-blur-xl border border-white/60 dark:border-white/20 rounded-[14px] p-4 md:p-6 shadow-2xl">
-        <div className="mb-4">
-          <h2 className="text-base leading-4 text-gray-800 dark:text-white mb-1">
-            {isSignUp ? 'Create Account' : 'Sign In'}
+      <div className="relative z-10 w-full max-w-[448px] bg-white/90 dark:bg-black/40 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
+        <div className="mb-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {isSignUp ? 'Create Your Free Account' : 'Welcome Back'}
           </h2>
-          <p className="text-sm leading-5 text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {isSignUp
-              ? 'Fill in your details to create a new account'
-              : 'Enter your credentials to access your account'}
+              ? 'Start tracking your budget manually. No bank connections, just control.'
+              : 'Sign in to continue managing your finances your way'}
           </p>
         </div>
 
@@ -420,16 +440,34 @@ export function SignIn() {
       </div>
 
       {/* Toggle Mode Link */}
-      <div className="mt-4 text-center">
-        <span className="text-sm text-[#717182] dark:text-[#A1A1AA]">
+      <div className="mt-6 text-center">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
         </span>
         <button
           onClick={toggleMode}
-          className="text-base text-[#030213] dark:text-[#A78BFA] hover:underline"
+          className="text-sm font-semibold text-blue-600 dark:text-purple-400 hover:underline transition-colors"
         >
           {isSignUp ? 'Sign In' : 'Sign Up'}
         </button>
+      </div>
+
+      {/* Trust Indicators - Match Landing Page Style */}
+      <div className="relative z-10 mt-8 max-w-[448px] w-full">
+        <div className="flex flex-wrap justify-center items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span>No credit card</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span>Free forever</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span>No bank connections</span>
+          </div>
+        </div>
       </div>
     </div>
   );

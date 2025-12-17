@@ -57,7 +57,7 @@ export function Dashboard() {
       <div className="flex items-center justify-between gap-3 lg:hidden mb-4">
         <div className="flex items-center gap-3">
           <img 
-            src="/icon.png" 
+            src="/icon.svg" 
             alt="FinanEase Logo" 
             className="w-10 h-10 object-contain"
           />

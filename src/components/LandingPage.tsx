@@ -149,7 +149,7 @@ export function LandingPage() {
             className="mb-8 flex justify-center"
           >
             <img 
-              src="/icon.png" 
+              src="/icon.svg"
               alt="FinanEase" 
               className="w-20 h-20 drop-shadow-2xl"
             />
