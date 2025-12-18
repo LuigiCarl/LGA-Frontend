@@ -144,6 +144,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Set token with appropriate expiration (1 day or 1 week)
       setTokenWithExpiration(response.token, response.user, rememberMe);
       
+      // Dispatch user changed event for other contexts
+      window.dispatchEvent(new Event('userChanged'));
+      
       const expirationTime = rememberMe ? '1 week' : '1 day';
       console.log(`💾 Token saved with ${expirationTime} expiration (Remember Me: ${rememberMe})`);
     } catch (error: any) {
@@ -183,6 +186,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearAllTokenData();
       setToken(null);
       setUser(null);
+      
+      // Dispatch user changed event for other contexts
+      window.dispatchEvent(new Event('userChanged'));
       
       // Also remove old shared emoji key if exists
       localStorage.removeItem('userEmoji');

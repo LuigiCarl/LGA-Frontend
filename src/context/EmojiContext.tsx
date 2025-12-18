@@ -45,18 +45,16 @@ export function EmojiProvider({ children }: { children: ReactNode }) {
     // Listen for storage changes (for multi-tab support)
     window.addEventListener('storage', handleStorageChange);
     
-    // Also check periodically for user changes (same tab)
-    const checkUserChange = () => {
-      const newEmoji = getStoredEmoji();
-      setEmojiState(prev => prev !== newEmoji ? newEmoji : prev);
+    // Listen for user login/logout events via custom event
+    const handleUserChange = () => {
+      setEmojiState(getStoredEmoji());
     };
     
-    // Check every second for user changes
-    const interval = setInterval(checkUserChange, 1000);
+    window.addEventListener('userChanged', handleUserChange);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      window.removeEventListener('userChanged', handleUserChange);
     };
   }, []);
 

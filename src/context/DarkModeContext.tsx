@@ -10,19 +10,7 @@ interface DarkModeContextType {
 const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined);
 
 export function DarkModeProvider({ children }: { children: ReactNode }) {
-  // Migrate existing users to system mode by default
-  useEffect(() => {
-    const themeMode = localStorage.getItem("themeMode");
-    const darkMode = localStorage.getItem("darkMode");
-    
-    // If user has no theme mode setting but has dark mode setting, migrate to system
-    if (themeMode === null && darkMode !== null) {
-      localStorage.setItem("themeMode", "system");
-      localStorage.removeItem("darkMode"); // Remove old manual preference
-    }
-  }, []);
-
-  // Check if user has manually set a preference or wants to use system
+  // Check if user has manually set a preference or wants to use system (read once on mount)
   const [isSystemMode, setIsSystemModeState] = useState(() => {
     const saved = localStorage.getItem("themeMode");
     return saved === null || saved === "system";
@@ -38,7 +26,7 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
     return saved !== null ? JSON.parse(saved) : window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  // Listen for system theme changes
+  // Listen for system theme changes only when in system mode
   useEffect(() => {
     if (!isSystemMode) return;
 
@@ -58,10 +46,14 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [isSystemMode]);
 
+  // Update localStorage and document class when theme changes
   useEffect(() => {
     // Update localStorage only if not in system mode
     if (!isSystemMode) {
       localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
+    } else {
+      // Remove darkMode key when in system mode to save space
+      localStorage.removeItem("darkMode");
     }
     
     // Always save the mode preference

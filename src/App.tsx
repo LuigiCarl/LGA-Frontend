@@ -28,7 +28,7 @@ function App() {
                 <TermsProvider>
                   <AuthProvider>
                     <MonthProvider>
-                      <KeepAliveProvider maxCachedPages={10} cacheTTL={30 * 60 * 1000}>
+                      <KeepAliveProvider maxCachedPages={5} cacheTTL={10 * 60 * 1000}>
                         <EmojiProvider>
                           <NotificationProvider>
                             <RouterProvider router={router} />

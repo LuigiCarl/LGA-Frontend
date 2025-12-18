@@ -51,16 +51,46 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
+        // Limit cache size to prevent bloat
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB max per file
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\..*/i,
+            // API calls - Network First with short cache
+            urlPattern: /^https:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 8,
+              expiration: {
+                maxEntries: 30, // Reduced from 50
+                maxAgeSeconds: 30 * 60, // 30 minutes (reduced from 1 hour)
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Images - Cache First for performance
+            urlPattern: /\.(png|jpg|jpeg|svg|gif|webp)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60, // 1 hour (reduced from 24)
+                maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week
+              },
+            },
+          },
+          {
+            // Fonts - Cache First
+            urlPattern: /\.(woff|woff2|ttf|eot)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'font-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
               },
             },
           },

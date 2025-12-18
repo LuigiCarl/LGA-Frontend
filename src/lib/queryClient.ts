@@ -20,11 +20,11 @@ import {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Data is fresh for 30 seconds - reduces unnecessary refetches
-      staleTime: 30 * 1000,
+      // Data is fresh for 2 minutes - good balance between fresh data and performance
+      staleTime: 2 * 60 * 1000,
       
-      // Keep data in cache for 10 minutes after component unmounts
-      gcTime: 10 * 60 * 1000,
+      // Keep data in cache for 5 minutes after component unmounts (reduced from 10)
+      gcTime: 5 * 60 * 1000,
       
       // Only refetch on focus if data is stale
       refetchOnWindowFocus: false,
@@ -48,6 +48,14 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// Periodically clean up old cache entries (every 5 minutes)
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    queryClient.getQueryCache().clear();
+    console.log('🧹 Query cache cleaned');
+  }, 5 * 60 * 1000);
+}
 
 /**
  * Query key factory for type-safe and consistent cache keys
