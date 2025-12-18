@@ -20,20 +20,20 @@ import {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Data is fresh for 5 seconds - very fast updates
-      staleTime: 5 * 1000,
+      // Data is fresh for 30 seconds - reduces unnecessary refetches
+      staleTime: 30 * 1000,
       
       // Keep data in cache for 10 minutes after component unmounts
       gcTime: 10 * 60 * 1000,
       
-      // Refetch when window regains focus to get latest data
-      refetchOnWindowFocus: true,
+      // Only refetch on focus if data is stale
+      refetchOnWindowFocus: false,
       
       // Refetch when reconnecting to get latest data
       refetchOnReconnect: true,
       
-      // Always refetch on mount to get fresh data
-      refetchOnMount: true,
+      // Don't always refetch on mount - use cached data if fresh
+      refetchOnMount: false,
       
       // Limit retries to reduce server load
       retry: 1,
