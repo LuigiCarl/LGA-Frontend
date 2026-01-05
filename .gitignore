@@ -36,3 +36,9 @@ coverage
 # Misc
 .cache
 .temp
+
+# Documentation (ignore markdown files)
+*.md
+
+# Git configuration
+.gitignore
